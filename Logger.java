@@ -24,9 +24,19 @@ public class Logger {
 		}
 	}
 	
+	/* Prints string */
+	public void print(String words){
+		logger.print(words);
+	}
+	
 	/* Prints a formatted string with generic single argument */
 	public <T> void printFormatted(String words, T arg){
 		logger.printf(words, arg);
+	}
+	
+	/* Print barrier */
+	public void printBarrier(){
+		logger.print("-----------------------------------------\n");
 	}
 	
 	/* Prints chunk of (Insances) data */
