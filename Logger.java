@@ -25,7 +25,7 @@ public class Logger {
 	}
 	
 	/* Prints a formatted string with generic single argument */
-	public <T> void print(String words, T arg){
+	public <T> void printFormatted(String words, T arg){
 		logger.printf(words, arg);
 	}
 	

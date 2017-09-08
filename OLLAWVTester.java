@@ -16,11 +16,11 @@ public class OLLAWVTester {
 		int numClasses = 2;
 		
 		/* Print configuration. */
-		log.print("Number of chunks: %d\n", numChunks);
-		log.print("Number of instances: %d\n", chunkSize);
-		log.print("Dimensionality: %d\n", dim);
-		log.print("Number of classes: %d\n", numClasses);
-		log.print("Seed: %d\n", seed);
+		log.printFormatted("Number of chunks: %d\n", numChunks);
+		log.printFormatted("Number of instances: %d\n", chunkSize);
+		log.printFormatted("Dimensionality: %d\n", dim);
+		log.printFormatted("Number of classes: %d\n", numClasses);
+		log.printFormatted("Seed: %d\n", seed);
 		
 		/* Create stream & set stream options based on configuration. */
 		RandomRBFGenerator stream = new RandomRBFGenerator();
@@ -42,7 +42,7 @@ public class OLLAWVTester {
 			numSamplesProcessed += chunkSize;
 			
 			/* Print data */
-			if(chunkSize*numChunks < 25){
+			if(chunkSize < 25){
 				log.printData(chunk, chunkSize, dim);
 			}
 			
