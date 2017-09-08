@@ -21,6 +21,7 @@ public class OLLAWVTester {
 		log.printFormatted("Dimensionality: %d\n", dim);
 		log.printFormatted("Number of classes: %d\n", numClasses);
 		log.printFormatted("Seed: %d\n", seed);
+		log.printBarrier();
 		
 		/* Create stream & set stream options based on configuration. */
 		RandomRBFGenerator stream = new RandomRBFGenerator();
@@ -43,15 +44,20 @@ public class OLLAWVTester {
 			
 			/* Print data */
 			if(chunkSize < 25){
+				log.printBarrier();
+				log.printFormatted("CHUNK #%d\n",c);
 				log.printData(chunk, chunkSize, dim);
+				log.printBarrier();
 			}
 			
 			if(c != 0){
 				// test
+				// TODO: write up test code
+				// TODO: write up timer for testing
 			}
 			
-			System.out.println("Chunk #"+(c+1)+":");
-			//printData(chunk,10,dim);
+			// train
+			// TODO: write up timer for training
 			
 		}
 	}
