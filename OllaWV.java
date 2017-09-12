@@ -52,7 +52,14 @@ public class OllaWV extends AbstractClassifier {
 	protected Measurement[] getModelMeasurementsImpl() {
 		return null;
 	}
-
+	
+	/* Returns the name of the solver. */
+	@Override
+    public String getPurposeString() {
+        return "OnLine Learning Algorithm using Worst Violator (OLLAWV), VK and GM (2017).";
+    }
+	
+	/* Prints parameter out to string builder (auto-generated inherited). */
 	@Override
 	public void getModelDescription(StringBuilder out, int indent) {
 		StringUtils.appendIndented(out, indent, toString());
