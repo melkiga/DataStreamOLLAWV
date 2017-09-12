@@ -6,6 +6,8 @@
 
 package vcu.edu.datastreamlearning.ollawv;
 
+import java.util.List;
+
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
 import com.yahoo.labs.samoa.instances.Instance;
@@ -71,6 +73,11 @@ public class OLLASolver extends AbstractClassifier {
 	 * Holds SVM Hyper-parameters.
 	 */
 	private static SVMParameters params = new SVMParameters();
+	/**
+	 * Model Parameters
+	 */
+	private List<Double> alphas;
+	private List<Integer> Ind; 
 	
 	/**
 	 * Sets options for model and initializes header for data.
@@ -185,6 +192,22 @@ public class OLLASolver extends AbstractClassifier {
 
 	public static void setLog(Logger log) {
 		OLLASolver.log = log;
+	}
+
+	public List<Double> getAlphas() {
+		return alphas;
+	}
+
+	public void setAlphas(List<Double> alphas) {
+		this.alphas = alphas;
+	}
+
+	public List<Integer> getInd() {
+		return Ind;
+	}
+
+	public void setInd(List<Integer> ind) {
+		Ind = ind;
 	}
 
 }
