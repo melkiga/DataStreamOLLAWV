@@ -23,7 +23,11 @@ public class SVMParameters {
 	private double tol;
 	
 	public SVMParameters(){
-		
+		this.C = 1.0;
+		this.gamma = 0.5;
+		this.betta = 1;
+		this.epochs = 0.5;
+		this.tol = 0.1;
 	}
 
 	public double getC() {
