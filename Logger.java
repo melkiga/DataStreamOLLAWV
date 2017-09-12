@@ -39,7 +39,7 @@ public class Logger {
 		logger.print("-----------------------------------------\n");
 	}
 	
-	/* Prints chunk of (Insances) data */
+	/* Prints chunk of (Instances) data */
 	public void printData(Instances chunk, int chunkSize, int dim){
 		for(int i = 0; i < chunkSize; i++){
 			double label = chunk.get(i).classValue();
