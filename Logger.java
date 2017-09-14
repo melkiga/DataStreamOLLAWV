@@ -46,11 +46,11 @@ public class Logger {
 			if(label == 0){
 				label= -1;
 			}
-			System.out.print(label+" ");
+			logger.print(label+" ");
 			for(int j = 1; j <= dim; j++){
-				System.out.print(j+":"+chunk.get(i).value(j-1)+" ");
+				logger.print(j+":"+chunk.get(i).value(j-1)+" ");
 			}
-			System.out.println();
+			logger.println();
 		}
 	}
 }
