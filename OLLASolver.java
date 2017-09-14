@@ -76,8 +76,9 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Model Parameters
 	 */
-	private List<Double> alphas;
-	private List<Integer> Ind; 
+	private List<List<Double>> alphas;
+	private List<List<Integer>> Ind; 
+	private double[] bias;
 	
 	/**
 	 * Sets options for model and initializes header for data.
@@ -119,7 +120,7 @@ public class OLLASolver extends AbstractClassifier {
 	 * Train on a batch of instances.
 	 */
 	@Override
-	public void trainOnInstances(Instances arg0) {
+	public void trainOnInstances(Instances data) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -194,19 +195,19 @@ public class OLLASolver extends AbstractClassifier {
 		OLLASolver.log = log;
 	}
 
-	public List<Double> getAlphas() {
+	public List<List<Double>> getAlphas() {
 		return alphas;
 	}
 
-	public void setAlphas(List<Double> alphas) {
+	public void setAlphas(List<List<Double>> alphas) {
 		this.alphas = alphas;
 	}
 
-	public List<Integer> getInd() {
+	public List<List<Integer>> getInd() {
 		return Ind;
 	}
 
-	public void setInd(List<Integer> ind) {
+	public void setInd(List<List<Integer>> ind) {
 		Ind = ind;
 	}
 
