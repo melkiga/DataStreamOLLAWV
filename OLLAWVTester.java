@@ -30,7 +30,17 @@ public class OLLAWVTester {
 		stream.numClassesOption.setValue(numClasses);
 		stream.numAttsOption.setValue(dim);
 		stream.numCentroidsOption.setValue(2);
+		stream.instanceRandomSeedOption.setValue(seed);
+		stream.numAttsOption.setValue(dim);
 		stream.prepareForUse();
+		
+		/* Initialize model */
+		OLLASolver model = new OLLASolver();
+		model.cOption.setValue(1.0);
+		model.gOption.setValue(0.5);
+		model.changeOption.setValue(0);
+		model.vOption.setValue(1);
+		model.setModelContext(stream.getHeader());
 		
 		/* Prequential Test-then-train on each chunk */
 		int numSamplesProcessed = 0;
