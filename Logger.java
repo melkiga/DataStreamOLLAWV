@@ -26,17 +26,20 @@ public class Logger {
 	
 	/* Prints string */
 	public <T> void print(T words){
-		logger.print(words);
+		logger.println(words);
+		logger.flush();
 	}
 	
 	/* Prints a formatted string with generic single argument */
 	public <T> void printFormatted(String words, T arg){
 		logger.printf(words, arg);
+		logger.flush();
 	}
 	
 	/* Print barrier */
 	public void printBarrier(){
 		logger.print("-----------------------------------------\n");
+		logger.flush();
 	}
 	
 	/* Prints chunk of (Instances) data */
@@ -52,5 +55,6 @@ public class Logger {
 			}
 			logger.println();
 		}
+		logger.flush();
 	}
 }
