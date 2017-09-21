@@ -43,14 +43,14 @@ public class Logger {
 	}
 	
 	/* Prints chunk of (Instances) data */
-	public void printData(Instances chunk, int chunkSize, int dim){
-		for(int i = 0; i < chunkSize; i++){
+	public void printInstances(Instances chunk){
+		for(int i = 0; i < chunk.size(); i++){
 			double label = chunk.get(i).classValue();
 			if(label == 0){
 				label= -1;
 			}
 			logger.print(label+" ");
-			for(int j = 1; j <= dim; j++){
+			for(int j = 1; j <= chunk.numAttributes(); j++){
 				logger.print(j+":"+chunk.get(i).value(j-1)+" ");
 			}
 			logger.println();
