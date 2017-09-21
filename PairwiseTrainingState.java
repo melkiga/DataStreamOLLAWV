@@ -8,7 +8,7 @@ import java.util.List;
  *
  */
 public class PairwiseTrainingState {
-	private List<PairwiseTrainingResult> models;
+	protected List<PairwiseTrainingResult> models;
 	private int svNumber;
 	private int labelNumber;
 	
@@ -17,7 +17,6 @@ public class PairwiseTrainingState {
 		svNumber = -1;
 		labelNumber = -1;
 	}
-	
 	
 	public List<PairwiseTrainingResult> getModels() {
 		return models;
