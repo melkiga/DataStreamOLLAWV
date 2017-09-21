@@ -6,6 +6,7 @@
 
 package vcu.edu.datastreamlearning.ollawv;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -137,15 +138,27 @@ public class OLLASolver extends AbstractClassifier {
 			classSizes[(int) data.get(sample).classValue()]++;
 		}
 		
+		// initialize pairwise models a& assign size of each based on the class sizes
+		state.models = new ArrayList<PairwiseTrainingResult>();
+		for(int i = 0; i < num_classes; i++){
+			for(int j = (i+1); j < num_classes; j++){
+				int size = classSizes[i] + classSizes[j];
+				state.models.add(new PairwiseTrainingResult(params,size));
+			}
+		}
+		
+		// set the last label number
+		state.setLabelNumber(num_classes);
+		
+		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
-			log.print("Class Sizes: ");
-			log.print(Arrays.toString(classSizes));
+			log.print("Initialize()::");
+			log.print("      Class Sizes: "+Arrays.toString(classSizes));
 			log.printBarrier();
 		}
 		
 		log.print("");
-		
 	}
 	
 	/**
