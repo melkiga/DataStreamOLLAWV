@@ -1,8 +1,12 @@
 package vcu.edu.datastreamlearning.ollawv;
 
 import java.util.List;
-
-public class OLLAWVModel {
+/**
+ * This is equivalent to the PairwiseTrainingResult
+ * @author Gabriella Melki
+ *
+ */
+public class PairwiseTrainingResult {
 	/**
 	 * Alpha values
 	 */
@@ -27,7 +31,7 @@ public class OLLAWVModel {
 	/**
 	 * Constructor for OLLAWV model
 	 */
-	public OLLAWVModel(SVMParameters params){
+	public PairwiseTrainingResult(SVMParameters params){
 		this.setParams(params);
 		setAlphas(null);
 		setInd(null);
