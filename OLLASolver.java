@@ -157,7 +157,7 @@ public class OLLASolver extends AbstractClassifier {
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
-			log.print("Initialize()::");
+			log.print("intialize(Instances data)::");
 			log.printFormatted("\tClass Sizes: %s\n", Arrays.toString(classSizes));
 			log.printFormatted("\tMax Label: %d\n",state.getLabelNumber());
 			log.printFormatted("\tCurrent Size: %d\n", currentSize);
@@ -173,7 +173,19 @@ public class OLLASolver extends AbstractClassifier {
 		if(cache == null){
 			intialize(data);
 		}
-		log.printBarrier();
+		
+		int svNum = 0;
+		int totalSize = num_data;
+		for(int i = 0; i < state.models.size(); i++){
+			
+		}
+		
+		// for debugging
+		if(vOption.getValue() == 1){
+			log.printBarrier();
+			log.print("trainOnInstances(Instances data)::");
+			log.printBarrier();
+		}
 	}
 	
 	/** 
