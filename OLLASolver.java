@@ -8,7 +8,6 @@ package vcu.edu.datastreamlearning.ollawv;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
@@ -79,9 +78,9 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	private static SVMParameters params = new SVMParameters();
 	/**
-	 * Label's and their counts
+	 * Cache + Kernel Evaluator
 	 */
-	private HashMap<Integer,Integer> label_map;
+	protected Cache cache;
 	
 	/**
 	 * Sets options for model and initializes header for data.
@@ -100,6 +99,8 @@ public class OLLASolver extends AbstractClassifier {
 		this.standardize = standardizeOption.getValue();
 		// Set the state to be null
 		this.state = new PairwiseTrainingState();
+		// Set cache to be null
+		cache = null;
 		// if verbose, print out the model header
 		if(vOption.getValue() == 1){
 			log.printBarrier();
@@ -150,6 +151,9 @@ public class OLLASolver extends AbstractClassifier {
 		// set the last label number as max label
 		state.setLabelNumber(num_classes);
 		
+		// build the cache
+		cache = new Cache(data,num_data,dim,params);
+		
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
@@ -159,8 +163,6 @@ public class OLLASolver extends AbstractClassifier {
 			log.printFormatted("\tCurrent Size: %d\n", currentSize);
 			log.printBarrier();
 		}
-		
-		log.print("");
 	}
 	
 	/**
@@ -168,10 +170,10 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
-		if(state.getModels() == null){
+		if(cache == null){
 			intialize(data);
 		}
-		
+		log.printBarrier();
 	}
 	
 	/** 
@@ -242,14 +244,6 @@ public class OLLASolver extends AbstractClassifier {
 
 	public static void setLog(Logger log) {
 		OLLASolver.log = log;
-	}
-
-	public HashMap<Integer,Integer> getLabel_map() {
-		return label_map;
-	}
-
-	public void setLabel_map(HashMap<Integer,Integer> label_map) {
-		this.label_map = label_map;
 	}
 	
 	@Override
