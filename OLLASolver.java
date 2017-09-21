@@ -126,7 +126,7 @@ public class OLLASolver extends AbstractClassifier {
 			data = proc.convertInstances(data);
 		}
 		
-		// set class index 
+		// set class index + data information
 		num_data = data.numInstances();
 		dim = data.numAttributes()-1;
 		data.setClassIndex(dim);
@@ -147,14 +147,16 @@ public class OLLASolver extends AbstractClassifier {
 			}
 		}
 		
-		// set the last label number
+		// set the last label number as max label
 		state.setLabelNumber(num_classes);
 		
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
 			log.print("Initialize()::");
-			log.print("      Class Sizes: "+Arrays.toString(classSizes));
+			log.printFormatted("\tClass Sizes: %s\n", Arrays.toString(classSizes));
+			log.printFormatted("\tMax Label: %d\n",state.getLabelNumber());
+			log.printFormatted("\tCurrent Size: %d\n", currentSize);
 			log.printBarrier();
 		}
 		
