@@ -28,16 +28,21 @@ public class PairwiseTrainingResult {
 	 * SVM Hyper-parameters
 	 */
 	private SVMParameters params;
+	/**
+	 * Data class pair
+	 */
+	Tuple<Integer,Integer> trainingLabels;
 	
 	/**
 	 * Constructor for OLLAWV model
 	 */
-	public PairwiseTrainingResult(SVMParameters params, int size){
+	public PairwiseTrainingResult(SVMParameters params, int size, Tuple<Integer,Integer> trainingLabels){
 		this.setParams(params);
 		setAlphas(new ArrayList<Double>(size));
 		setInd(new ArrayList<Integer>(size));
 		setSvnumber(0);
 		setBias(0.0);
+		this.trainingLabels = trainingLabels;
 	}
 
 	public SVMParameters getParams() {

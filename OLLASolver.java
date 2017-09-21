@@ -67,6 +67,7 @@ public class OLLASolver extends AbstractClassifier {
 	protected int currentSize;
 	protected int dim;
 	protected int num_classes;
+	protected int[] classSizes;
 	protected int standardize;
 	protected PairwiseTrainingState state;
 	/**
@@ -134,7 +135,7 @@ public class OLLASolver extends AbstractClassifier {
 		currentSize = num_data;
 		
 		// get class sizes
-		int[] classSizes = new int[num_classes];
+		classSizes = new int[num_classes];
 		for(int sample = 0; sample < num_data; sample++){
 			classSizes[(int) data.get(sample).classValue()]++;
 		}
@@ -144,7 +145,8 @@ public class OLLASolver extends AbstractClassifier {
 		for(int i = 0; i < num_classes; i++){
 			for(int j = (i+1); j < num_classes; j++){
 				int size = classSizes[i] + classSizes[j];
-				state.models.add(new PairwiseTrainingResult(params,size));
+				Tuple<Integer,Integer> trainPair = new Tuple<Integer,Integer>(i,j);
+				state.models.add(new PairwiseTrainingResult(params,size,trainPair));
 			}
 		}
 		
@@ -177,7 +179,8 @@ public class OLLASolver extends AbstractClassifier {
 		int svNum = 0;
 		int totalSize = num_data;
 		for(int i = 0; i < state.models.size(); i++){
-			
+			Tuple<Integer,Integer> trainPair = state.models.get(i).trainingLabels;
+			int size = classSizes[trainPair.first] + classSizes[trainPair.second];
 		}
 		
 		// for debugging
@@ -186,6 +189,14 @@ public class OLLASolver extends AbstractClassifier {
 			log.print("trainOnInstances(Instances data)::");
 			log.printBarrier();
 		}
+	}
+	
+	/**
+	 * Orders samples based on the current label training pair
+	 */
+	public int reorderSamples(){
+		//TODO: fill this out
+		return 1;
 	}
 	
 	/** 
