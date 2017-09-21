@@ -6,6 +6,7 @@
 
 package vcu.edu.datastreamlearning.ollawv;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 import com.github.javacliparser.FloatOption;
@@ -13,6 +14,7 @@ import com.github.javacliparser.IntOption;
 import com.yahoo.labs.samoa.instances.Instance;
 import com.yahoo.labs.samoa.instances.Instances;
 import com.yahoo.labs.samoa.instances.InstancesHeader;
+import com.yahoo.labs.samoa.instances.Standardize;
 
 import moa.classifiers.AbstractClassifier;
 import moa.core.Measurement;
@@ -113,9 +115,37 @@ public class OLLASolver extends AbstractClassifier {
 		}
 	}
 	
-	@Override
-	public boolean isRandomizable() {
-		return false;
+	/**
+	 * Initializes the solver + the pairwise models
+	 */
+	public void intialize(Instances data){
+		// Standardize data
+		if(standardize == 1){
+			Standardize proc = new Standardize();
+			data = proc.convertInstances(data);
+		}
+		
+		// set class index 
+		num_data = data.numInstances();
+		dim = data.numAttributes()-1;
+		data.setClassIndex(dim);
+		currentSize = num_data;
+		
+		// get class sizes
+		int[] classSizes = new int[num_classes];
+		for(int sample = 0; sample < num_data; sample++){
+			classSizes[(int) data.get(sample).classValue()]++;
+		}
+		
+		if(vOption.getValue() == 1){
+			log.printBarrier();
+			log.print("Class Sizes: ");
+			log.print(Arrays.toString(classSizes));
+			log.printBarrier();
+		}
+		
+		log.print("");
+		
 	}
 	
 	/**
@@ -123,7 +153,9 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
-		// TODO Auto-generated method stub
+		if(state.getModels() == null){
+			intialize(data);
+		}
 		
 	}
 	
@@ -203,6 +235,11 @@ public class OLLASolver extends AbstractClassifier {
 
 	public void setLabel_map(HashMap<Integer,Integer> label_map) {
 		this.label_map = label_map;
+	}
+	
+	@Override
+	public boolean isRandomizable() {
+		return false;
 	}
 
 }
