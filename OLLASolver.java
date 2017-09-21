@@ -6,7 +6,7 @@
 
 package vcu.edu.datastreamlearning.ollawv;
 
-import java.util.List;
+import java.util.HashMap;
 
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
@@ -61,10 +61,12 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Data Header Variables
 	 */
-	public int num_data;
-	public int dim;
-	public int num_classes;
-	public int standardize;
+	protected int num_data;
+	protected int currentSize;
+	protected int dim;
+	protected int num_classes;
+	protected int standardize;
+	protected PairwiseTrainingState state;
 	/**
 	 * Logger for debugging.
 	 */
@@ -88,11 +90,13 @@ public class OLLASolver extends AbstractClassifier {
 		params.setGamma(gOption.getValue());
 		params.setEpochs(eOption.getValue());
 		params.setTol(tOption.getValue());
-		// get data header
+		// Get data header
 		this.num_data = context.numInstances();
 		this.dim = context.numAttributes();
 		this.num_classes = context.numClasses();
 		this.standardize = standardizeOption.getValue();
+		// Set the state to be null
+		this.state = new PairwiseTrainingState();
 		// if verbose, print out the model header
 		if(vOption.getValue() == 1){
 			log.printBarrier();
@@ -191,6 +195,14 @@ public class OLLASolver extends AbstractClassifier {
 
 	public static void setLog(Logger log) {
 		OLLASolver.log = log;
+	}
+
+	public HashMap<Integer,Integer> getLabel_map() {
+		return label_map;
+	}
+
+	public void setLabel_map(HashMap<Integer,Integer> label_map) {
+		this.label_map = label_map;
 	}
 
 }
