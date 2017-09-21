@@ -25,7 +25,7 @@ public class Logger {
 	}
 	
 	/* Prints string */
-	public void print(String words){
+	public <T> void print(T words){
 		logger.print(words);
 	}
 	
