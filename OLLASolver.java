@@ -74,11 +74,9 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	private static SVMParameters params = new SVMParameters();
 	/**
-	 * Model Parameters
+	 * Label's and their counts
 	 */
-	private List<List<Double>> alphas;
-	private List<List<Integer>> Ind; 
-	private double[] bias;
+	private HashMap<Integer,Integer> label_map;
 	
 	/**
 	 * Sets options for model and initializes header for data.
@@ -193,22 +191,6 @@ public class OLLASolver extends AbstractClassifier {
 
 	public static void setLog(Logger log) {
 		OLLASolver.log = log;
-	}
-
-	public List<List<Double>> getAlphas() {
-		return alphas;
-	}
-
-	public void setAlphas(List<List<Double>> alphas) {
-		this.alphas = alphas;
-	}
-
-	public List<List<Integer>> getInd() {
-		return Ind;
-	}
-
-	public void setInd(List<List<Integer>> ind) {
-		Ind = ind;
 	}
 
 }
