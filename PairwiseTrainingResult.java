@@ -1,5 +1,6 @@
 package vcu.edu.datastreamlearning.ollawv;
 
+import java.util.ArrayList;
 import java.util.List;
 /**
  * This is equivalent to the PairwiseTrainingResult
@@ -31,10 +32,10 @@ public class PairwiseTrainingResult {
 	/**
 	 * Constructor for OLLAWV model
 	 */
-	public PairwiseTrainingResult(SVMParameters params){
+	public PairwiseTrainingResult(SVMParameters params, int size){
 		this.setParams(params);
-		setAlphas(null);
-		setInd(null);
+		setAlphas(new ArrayList<Double>(size));
+		setInd(new ArrayList<Integer>(size));
 		setSvnumber(0);
 		setBias(0.0);
 	}
