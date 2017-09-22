@@ -103,18 +103,12 @@ public class OLLASolver extends AbstractClassifier {
 		this.state = new PairwiseTrainingState();
 		// Set cache to be null
 		cache = null;
-		// if verbose, print out the model header
+		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
 			log.printf(this.getPurposeString());
 			log.printBarrier();
 			log.printf(this.getModelContextString());
-			log.printBarrier();
-			log.printf("Total number of data: %d\n", this.num_data);
-			log.printf("Dimensionality: %d\n", this.dim);
-			log.printf("Number of classes: %d\n", this.num_classes);
-			log.printf("Standardize data: %d\n", this.standardize);
-			log.printf("Seed: %d\n", this.randomSeed);
 			log.printBarrier();
 		}
 	}
@@ -169,9 +163,13 @@ public class OLLASolver extends AbstractClassifier {
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
-			log.printf("intialize(Instances data)::");
+			log.println("intialize(Instances data)::");
+			log.printf("\tTotal number of data: %d\n", this.num_data);
+			log.printf("\tDimensionality: %d\n", this.dim);
+			log.printf("\tNumber of classes: %d\n", this.num_classes);
+			log.printf("\tStandardize data: %d\n", this.standardize);
+			log.printf("\tSeed: %d\n", this.randomSeed);
 			log.printf("\tClass Sizes: %s\n", Arrays.toString(classSizes));
-			log.printf("\tMax Label: %d\n",state.getLabelNumber());
 			log.printf("\tCurrent Size: %d\n", currentSize);
 			log.printBarrier();
 		}
@@ -286,7 +284,7 @@ public class OLLASolver extends AbstractClassifier {
 		buff.append("SVM Parameter C: "+params.getC()+"\n");
 		buff.append("RBF Parameter gamma: "+params.getGamma()+"\n");
 		buff.append("Using Bias: "+params.getBetta()+"\n");
-		buff.append("Pruning tolerance: "+params.getTol()+"\n");
+		buff.append("Margin Tol: "+params.getTol()+"\n");
 		buff.append("Number of Epochs: "+params.getEpochs()+"\n");
 		buff.append("Using Change Detection: "+changeOption.getValue()+"\n");
         return buff.toString();
