@@ -86,7 +86,6 @@ public class Cache {
 	 * Sets the indices of the data to use for training the model
 	 */
 	protected void setIndices(List<Integer> first, List<Integer> second){
-		xIndices.clear();
 		xIndices = new ArrayList<Integer>(first);
 		xIndices.addAll(second);
 	}
