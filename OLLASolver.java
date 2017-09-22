@@ -207,7 +207,7 @@ public class OLLASolver extends AbstractClassifier {
 			state.models.get(i).setAlphas(cache.getAlphas());
 			state.models.get(i).setInd(cache.getInd());
 			state.models.get(i).setBias(cache.bias);
-			state.models.get(i).setSvnumber(cache.svnumber);
+			state.models.get(i).setSvnumber(cache.svnumber-1);
 			// save largest svnumber
 			if(state.models.get(i).getSvnumber() > svNum){
 				svNum = state.models.get(i).getSvnumber();
@@ -217,10 +217,10 @@ public class OLLASolver extends AbstractClassifier {
 				log.printBarrier();
 				log.print("trainOnInstances(Instances data)::");
 				log.printf("\tPair 1:(%d,%d)\n", trainPair.first, trainPair.second);
-				log.printf("\tNumber of Support Vectors: %d\n", cache.svnumber);
-				log.printf("\tBias: %d\n", cache.bias);
-				log.println("   Alphas: "+cache.getAlphas().toString());
-				log.println("   Inds: "+cache.getInd().toString());
+				log.printf("\tNumber of Support Vectors: %d\n", cache.svnumber-1);
+				log.printf("\tBias: %2.4f\n", cache.bias);
+				log.println("        Alphas: "+cache.getAlphas().toString());
+				log.println("        Inds: "+cache.getInd().toString());
 				log.printBarrier();
 			}
 		}
