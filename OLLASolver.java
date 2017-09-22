@@ -195,22 +195,26 @@ public class OLLASolver extends AbstractClassifier {
 			cache.setLabel(trainPair.second);
 			cache.setIndices(state.classIndices.get(trainPair.first), state.classIndices.get(trainPair.second));
 			cache.initialize(data); // equivalent to resetting the cache
-			
+			// train binary OLLAWV model
 			cache.trainForCache(data);
-			
+			// update pairwise training model
 			state.models.get(i).setAlphas(cache.getAlphas());
 			state.models.get(i).setInd(cache.getInd());
 			state.models.get(i).setBias(cache.bias);
 			state.models.get(i).setSvnumber(cache.svnumber);
+			// save largest svnumber
 			if(state.models.get(i).getSvnumber() > svNum){
 				svNum = state.models.get(i).getSvnumber();
 			}
-			
 			// for debugging
 			if(vOption.getValue() == 1){
 				log.printBarrier();
 				log.print("trainOnInstances(Instances data)::");
 				log.printf("\tPair 1:(%d,%d)\n", trainPair.first, trainPair.second);
+				log.printf("\tNumber of Support Vectors: %d\n", cache.svnumber);
+				log.printf("\tBias: %d\n", cache.bias);
+				log.println("   Alphas: "+cache.getAlphas().toString());
+				log.println("   Inds: "+cache.getInd().toString());
 				log.printBarrier();
 			}
 		}
