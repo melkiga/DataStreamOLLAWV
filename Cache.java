@@ -134,37 +134,6 @@ public class Cache {
 	}
 	
 	/**
-	 * Gets the label of sample v
-	 */
-	public double getLabel(int v, double lab){
-		double[] vals = {1.0, -1.0};
-		int index = (lab == yyNeg) ? 1 : 0;
-		return vals[index];
-	}
-	
-	/**
-	 * Sets the negative label
-	 */
-	public void setLabel(int lab){
-		yyNeg = lab;
-	}
-	
-	/**
-	 * Sets current size
-	 */
-	public void setCurrentSize(int size){
-		currentSize = size;
-	}
-	
-	/**
-	 * Sets the indices of the data to use for training the model
-	 */
-	protected void setIndices(List<Integer> first, List<Integer> second){
-		xIndices = new ArrayList<Integer>(first);
-		xIndices.addAll(second);
-	}
-	
-	/**
 	 * Calculates the RBF kernel vector of instance id, in the range [from,to), based on
 	 * the number of support vectors, and returns the vector in G.
 	 * @param id	- the instance
@@ -251,7 +220,40 @@ public class Cache {
 	 * @param result
 	 */
 	public void arrayAddConst(double val, double[] result){
-		
+		for(int i = 0; i < currentSize; i++){
+			result[i] = result[i] + val;
+		}
+	}
+	
+	/**
+	 * Gets the label of sample v
+	 */
+	public double getLabel(int v, double lab){
+		double[] vals = {1.0, -1.0};
+		int index = (lab == yyNeg) ? 1 : 0;
+		return vals[index];
+	}
+	
+	/**
+	 * Sets the negative label
+	 */
+	public void setLabel(int lab){
+		yyNeg = lab;
+	}
+	
+	/**
+	 * Sets current size
+	 */
+	public void setCurrentSize(int size){
+		currentSize = size;
+	}
+	
+	/**
+	 * Sets the indices of the data to use for training the model
+	 */
+	protected void setIndices(List<Integer> first, List<Integer> second){
+		xIndices = new ArrayList<Integer>(first);
+		xIndices.addAll(second);
 	}
 	
 	public List<Double> getAlphas() {
