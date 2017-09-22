@@ -36,7 +36,7 @@ public class Logger extends PrintWriter {
 	public void printInstances(Instances chunk){
 		for(int i = 0; i < chunk.size(); i++){
 			double label = chunk.get(i).classValue();
-			logger.print(label+" ");
+			logger.print((i+1)+"  "+label+" ");
 			for(int j = 1; j < chunk.numAttributes(); j++){
 				logger.print(j+":"+chunk.get(i).value(j-1)+" ");
 			}
