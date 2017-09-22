@@ -192,7 +192,7 @@ public class OLLASolver extends AbstractClassifier {
 			setCurrentSize(size);
 			cache.setLabel(trainPair.second);
 			cache.setIndices(state.classIndices.get(trainPair.first), state.classIndices.get(trainPair.second));
-			cache.initialize(data); // equivalent to resetting the cache
+			//cache.initialize(data); // TODO: see about resetting cache (if needed)
 			// train binary OLLAWV model
 			cache.trainForCache(data);
 			// update pairwise training model
