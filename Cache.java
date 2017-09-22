@@ -31,6 +31,7 @@ public class Cache {
 	List<double[]> xSV;
 	List<Double> ySV;
 	double bias;
+	List<Integer> xIndices;
 	/**
 	 * Classes that have value 0, take the negative class, otherwise they are positive
 	 */
@@ -65,6 +66,29 @@ public class Cache {
 		for(int i = 0; i < problemSize; i++){
 			x2.add(norm2(data.get(i)));
 		}
+	}
+	
+	/**
+	 * Sets the negative label
+	 */
+	public void setLabel(int lab){
+		yyNeg = lab;
+	}
+	
+	/**
+	 * Sets current size
+	 */
+	public void setCurrentSize(int size){
+		currentSize = size;
+	}
+	
+	/**
+	 * Sets the indices of the data to use for training the model
+	 */
+	protected void setIndices(List<Integer> first, List<Integer> second){
+		xIndices.clear();
+		xIndices = new ArrayList<Integer>(first);
+		xIndices.addAll(second);
 	}
 	
 	/**

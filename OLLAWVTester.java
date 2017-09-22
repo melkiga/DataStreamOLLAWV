@@ -23,11 +23,11 @@ public class OLLAWVTester {
 		
 		/* Print configuration. */
 		log.printBarrier();
-		log.printFormatted("Number of chunks: %d\n", numChunks);
-		log.printFormatted("Number of instances: %d\n", chunkSize);
-		log.printFormatted("Dimensionality: %d\n", dim);
-		log.printFormatted("Number of classes: %d\n", numClasses);
-		log.printFormatted("Seed: %d\n", seed);
+		log.printf("Number of chunks: %d\n", numChunks);
+		log.printf("Number of instances: %d\n", chunkSize);
+		log.printf("Dimensionality: %d\n", dim);
+		log.printf("Number of classes: %d\n", numClasses);
+		log.printf("Seed: %d\n", seed);
 		log.printBarrier();
 		
 		/* Calls Evaluate Interleaved Chunks */

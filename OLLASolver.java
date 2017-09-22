@@ -8,6 +8,7 @@ package vcu.edu.datastreamlearning.ollawv;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
@@ -105,15 +106,15 @@ public class OLLASolver extends AbstractClassifier {
 		// if verbose, print out the model header
 		if(vOption.getValue() == 1){
 			log.printBarrier();
-			log.print(this.getPurposeString());
+			log.printf(this.getPurposeString());
 			log.printBarrier();
-			log.print(this.getModelContextString());
+			log.printf(this.getModelContextString());
 			log.printBarrier();
-			log.printFormatted("Total number of data: %d\n", this.num_data);
-			log.printFormatted("Dimensionality: %d\n", this.dim);
-			log.printFormatted("Number of classes: %d\n", this.num_classes);
-			log.printFormatted("Standardize data: %d\n", this.standardize);
-			log.printFormatted("Seed: %d\n", this.randomSeed);
+			log.printf("Total number of data: %d\n", this.num_data);
+			log.printf("Dimensionality: %d\n", this.dim);
+			log.printf("Number of classes: %d\n", this.num_classes);
+			log.printf("Standardize data: %d\n", this.standardize);
+			log.printf("Seed: %d\n", this.randomSeed);
 			log.printBarrier();
 		}
 	}
@@ -134,13 +135,22 @@ public class OLLASolver extends AbstractClassifier {
 		data.setClassIndex(dim);
 		currentSize = num_data;
 		
-		// get class sizes
-		classSizes = new int[num_classes];
-		for(int sample = 0; sample < num_data; sample++){
-			classSizes[(int) data.get(sample).classValue()]++;
+		// initialize class indices
+		state.classIndices = new ArrayList<List<Integer>>(num_classes);
+		for(int c = 0; c < num_classes; c++){
+			state.classIndices.add(new ArrayList<Integer>());
 		}
 		
-		// initialize pairwise models a& assign size of each based on the class sizes
+		// get class sizes & class indices
+		classSizes = new int[num_classes];
+		for(int sample = 0; sample < num_data; sample++){
+			int label = (int) data.get(sample).classValue();
+			classSizes[label]++;
+			
+			state.classIndices.get(label).add(sample);
+		}
+		
+		// initialize pairwise models & assign size of each based on the class sizes
 		state.models = new ArrayList<PairwiseTrainingResult>();
 		for(int i = 0; i < num_classes; i++){
 			for(int j = (i+1); j < num_classes; j++){
@@ -159,10 +169,10 @@ public class OLLASolver extends AbstractClassifier {
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
-			log.print("intialize(Instances data)::");
-			log.printFormatted("\tClass Sizes: %s\n", Arrays.toString(classSizes));
-			log.printFormatted("\tMax Label: %d\n",state.getLabelNumber());
-			log.printFormatted("\tCurrent Size: %d\n", currentSize);
+			log.printf("intialize(Instances data)::");
+			log.printf("\tClass Sizes: %s\n", Arrays.toString(classSizes));
+			log.printf("\tMax Label: %d\n",state.getLabelNumber());
+			log.printf("\tCurrent Size: %d\n", currentSize);
 			log.printBarrier();
 		}
 	}
@@ -175,26 +185,52 @@ public class OLLASolver extends AbstractClassifier {
 		if(cache == null){
 			intialize(data);
 		}
-		
+		// set up the environment for each pairwise model
 		int svNum = 0;
 		int totalSize = num_data;
 		for(int i = 0; i < state.models.size(); i++){
 			Tuple<Integer,Integer> trainPair = state.models.get(i).trainingLabels;
 			int size = classSizes[trainPair.first] + classSizes[trainPair.second];
+			setCurrentSize(size);
+			cache.setLabel(trainPair.second);
+			cache.setIndices(state.classIndices.get(trainPair.first), state.classIndices.get(trainPair.second));
+			// TODO: check if reset() for cache is needed here
+			
+			// TODO: add train for cache here
+			
+			state.models.get(i).setAlphas(cache.getAlphas());
+			state.models.get(i).setInd(cache.getInd());
+			state.models.get(i).setBias(cache.bias);
+			state.models.get(i).setSvnumber(cache.svnumber);
+			if(state.models.get(i).getSvnumber() > svNum){
+				svNum = state.models.get(i).getSvnumber();
+			}
+			
+			// for debugging
+			if(vOption.getValue() == 1){
+				log.printBarrier();
+				log.print("trainOnInstances(Instances data)::");
+				log.printf("\tPair 1:(%d,%d)\n", trainPair.first, trainPair.second);
+				log.printBarrier();
+			}
 		}
-		
-		// for debugging
-		if(vOption.getValue() == 1){
-			log.printBarrier();
-			log.print("trainOnInstances(Instances data)::");
-			log.printBarrier();
-		}
+		// set the sv number to be the highest of the models
+		state.setSvNumber(svNum);
+		currentSize = totalSize;
+	}
+	
+	/**
+	 * Set current size of the pairwise model
+	 */
+	public void setCurrentSize(int size){
+		currentSize = size;
+		cache.setCurrentSize(size);
 	}
 	
 	/**
 	 * Orders samples based on the current label training pair
 	 */
-	public int reorderSamples(){
+	public int reorderSamples(Tuple<Integer,Integer> trainPair, int size, Instances data){
 		//TODO: fill this out
 		return 1;
 	}

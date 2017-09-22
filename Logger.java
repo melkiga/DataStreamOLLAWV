@@ -1,22 +1,25 @@
 package vcu.edu.datastreamlearning.ollawv;
 
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import com.yahoo.labs.samoa.instances.Instances;
 
-public class Logger {
+public class Logger extends PrintWriter {
 	
 	protected PrintWriter logger;
 	
 	/* Constructor to System.out output */
-	public Logger(){
+	Logger(){
+		super(System.out,true);
 		logger = new PrintWriter(System.out, true);
 	}
 	
 	/* Constructor to file output */
-	public Logger(String filename){
+	Logger(String filename) throws FileNotFoundException{
+		super(filename);
 		try {
 			logger = new PrintWriter(new FileWriter(filename), true);
 		} catch (IOException e) {
@@ -24,22 +27,9 @@ public class Logger {
 		}
 	}
 	
-	/* Prints string */
-	public <T> void print(T words){
-		logger.println(words);
-		logger.flush();
-	}
-	
-	/* Prints a formatted string with generic single argument */
-	public <T> void printFormatted(String words, T arg){
-		logger.printf(words, arg);
-		logger.flush();
-	}
-	
 	/* Print barrier */
 	public void printBarrier(){
-		logger.print("-----------------------------------------\n");
-		logger.flush();
+		logger.printf("-----------------------------------------\n");
 	}
 	
 	/* Prints chunk of (Instances) data */
@@ -55,6 +45,5 @@ public class Logger {
 			}
 			logger.println();
 		}
-		logger.flush();
 	}
 }
