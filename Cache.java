@@ -45,7 +45,6 @@ public class Cache {
 	List<double[]> xSV;
 	List<Double> ySV;
 	double bias;
-	List<Integer> xIndices;
 	double yyNeg;
 	
 	public Cache(Instances data, int probSize, int d, SVMParameters par){
@@ -64,7 +63,7 @@ public class Cache {
 	 */
 	protected void initialize(Instances data){
 		// cache variables
-		setAlphas(new ArrayList<Double>(Collections.nCopies(svnumber, 0.0)));
+		setAlphas(new ArrayList<Double>());
 		setInd(new ArrayList<Integer>());
 		output = new double[problemSize];
 		// evaluator variables
@@ -94,25 +93,25 @@ public class Cache {
 		
 		// loop variables
 		int iter = 0;
-		Violator viol = new Violator(getSampleIndex(iter),0.0);
+		Violator viol = new Violator(iter,0.0);
 		double[] G = new double[currentSize];
 		Instance sample;
 		double label;
 		
-		while(iter < maxIter && viol.yo < margin){
+		do {
 			iter += 1.0;
 			eta = 2.0 / Math.sqrt(iter);
 			
 			// get the sample
 			sample = data.get(viol.violator);
-			label = data.get(viol.violator).classValue(); 
+			label = getLabel(data.get(viol.violator).classValue()); 
 			
 			// set update variables
-			lambda = eta*C*getLabel(label);
+			lambda = eta*C*label;
 			LB = (lambda*betta) / currentSize;
 			
 			// calculate the kernel vector
-			//evalKernel(sample,viol.violator,G);
+			evalKernel(data,viol.violator,G);
 			
 			// calculate the output vector (output = output + G*lambda + LB)
 			arrayMulConst(lambda,G); 
@@ -120,7 +119,7 @@ public class Cache {
 			arrayAddConst(LB,output);
 			
 			// update worst violator information
-			alphas.set(viol.violator, alphas.get(viol.violator) + lambda); // (alpha(i) = alpha(i) + lambda)
+			alphas.add(lambda);
 			bias = bias + LB;
 			Ind.add(viol.violator);
 			xSV.add(sample.toDoubleArray());
@@ -131,8 +130,8 @@ public class Cache {
 			
 			// perform sv update
 			viol.violator = performSVUpdate(data,viol.violator);
-		}
-		
+			
+		} while(iter < maxIter && viol.yo < margin);
 	}
 	
 	/**
@@ -143,15 +142,13 @@ public class Cache {
 	public Violator findWorstViolator(Instances data){
 		double min_val = INT_MAX;
 		double ksi = 0.0;
-		int index = getSampleIndex(svnumber);
 		double label = 0.0;
-		Violator worstViol = new Violator(index,0);
+		Violator worstViol = new Violator(svnumber,0);
 		for(int i = svnumber; i < currentSize; i++){
-			index = getSampleIndex(i);
-			label = getLabel(data.get(index).classValue());
-			ksi = output[index] * label;
+			label = getLabel(data.get(i).classValue());
+			ksi = output[i] * label;
 			if(ksi < min_val){
-				worstViol.violator = index;
+				worstViol.violator = i;
 				worstViol.yo = ksi;
 				min_val = ksi;
 			}
@@ -165,10 +162,10 @@ public class Cache {
 	 */
 	public int performSVUpdate(Instances data, int v){
 		if(v >= svnumber){
-			Collections.swap(x2, v, svnumber); // x2
-			Collections.swap(xIndices, v, svnumber); // xIndices
-			arraySwap(output, v, svnumber); // output
 			data.swap(v, svnumber); // data
+			Collections.swap(x2, v, svnumber); // x2
+			arraySwap(output, v, svnumber); // output
+			
 			v = svnumber;
 			svnumber += 1;
 		}
@@ -176,33 +173,31 @@ public class Cache {
 	}
 	
 	/**
-	 * Calculates the RBF kernel vector of instance id, in the range [from,to), based on
-	 * the number of support vectors, and returns the vector in G.
-	 * @param id	- the instance
-	 * @param from	- starting svec
-	 * @param to	- ending svec
-	 * @param G		- Gaussian kernel vector of instance id
+	 * Calculates RBF Gaussian kernel vector of indwviol
+	 * @param data
+	 * @param indwviol
+	 * @param G
 	 */
-	public void evalKernel(Instance sample, int id, double[] G){
-		evalDist(sample, id, G);
+	public void evalKernel(Instances data, int indwviol, double[] G){
+		evalDist(data, indwviol, G);
 		
-		for(int i = 0; i < svnumber; i++){
+		for(int i = 0; i < currentSize; i++){
 			G[i] = Math.exp(-G[i]*params.getGamma());
 		}
 	}
 	
 	/**
-	 * Evaluates the squared Euclidean distance of a training sample
-	 * @param id
-	 * @param to
+	 * Evaluates Euclidean distance between indwviol and the rest of the data
+	 * @param data
+	 * @param indwviol
 	 * @param G
 	 */
-	public void evalDist(Instance sample, int id, double[] G){
+	public void evalDist(Instances data, int indwviol, double[] G){
 		double result = 0.0;
-		for(int i = 0; i < svnumber; i++){
-			double x2_id = x2.get(id);
-			double x2_i = x2.get(Ind.get(i));
-			result = dot(sample.toDoubleArray(), xSV.get(i));
+		for(int i = 0; i < currentSize; i++){
+			double x2_id = x2.get(i);
+			double x2_i = x2.get(indwviol);
+			result = dot(data.get(i).toDoubleArray(), data.get(indwviol).toDoubleArray());
 			G[i] = x2_id + x2_i -2*result;
 		}
 	}
@@ -280,15 +275,6 @@ public class Cache {
 	}
 	
 	/**
-	 * Returns the sample index based on the samples for this pairwise classifier
-	 * @param v
-	 * @return
-	 */
-	public int getSampleIndex(int v){
-		return xIndices.get(v);
-	}
-	
-	/**
 	 * Gets the label of sample v
 	 */
 	public double getLabel(double lab){
@@ -309,14 +295,6 @@ public class Cache {
 	 */
 	public void setCurrentSize(int size){
 		currentSize = size;
-	}
-	
-	/**
-	 * Sets the indices of the data to use for training the model
-	 */
-	protected void setIndices(List<Integer> first, List<Integer> second){
-		xIndices = new ArrayList<Integer>(first);
-		xIndices.addAll(second);
 	}
 	
 	public List<Double> getAlphas() {

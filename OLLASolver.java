@@ -188,11 +188,19 @@ public class OLLASolver extends AbstractClassifier {
 		int totalSize = num_data;
 		for(int i = 0; i < state.models.size(); i++){
 			Tuple<Integer,Integer> trainPair = state.models.get(i).trainingLabels;
-			int size = classSizes[trainPair.first] + classSizes[trainPair.second];
+			int size = reorderSamples(trainPair, totalSize, data);
+			
+			// for debugging
+			if(vOption.getValue() == 1){
+				log.printInstances(data);
+				log.printBarrier();
+			}
+			
 			setCurrentSize(size);
 			cache.setLabel(trainPair.second);
-			cache.setIndices(state.classIndices.get(trainPair.first), state.classIndices.get(trainPair.second));
-			//cache.initialize(data); // TODO: see about resetting cache (if needed)
+			
+			// TODO: see about resetting cache (if needed)
+			
 			// train binary OLLAWV model
 			cache.trainForCache(data);
 			// update pairwise training model
@@ -233,8 +241,22 @@ public class OLLASolver extends AbstractClassifier {
 	 * Orders samples based on the current label training pair
 	 */
 	public int reorderSamples(Tuple<Integer,Integer> trainPair, int size, Instances data){
-		//TODO: fill this out
-		return 1;
+		int first = trainPair.first;
+		int second = trainPair.second;
+		int train = 0;
+		int test = size-1;		
+		while(train <= test){
+			while(train < size && (data.get(train).classValue() == first || data.get(train).classValue() == second)){
+				train++;
+			}
+			while(test >= 0 && (data.get(test).classValue() != first && data.get(test).classValue() != second)){
+				test--;
+			}
+			if(train < test){
+				data.swap(train++, test--);
+			}
+		}
+		return train;
 	}
 	
 	/** 
