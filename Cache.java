@@ -34,6 +34,7 @@ public class Cache {
 	int problemSize;
 	int currentSize;
 	int svnumber;
+	double[] output;
 	/**
 	 * Kernel parameters
 	 */
@@ -68,6 +69,7 @@ public class Cache {
 		// cache variables
 		setAlphas(new ArrayList<Double>(Collections.nCopies(svnumber, 0.0)));
 		setInd(new ArrayList<Integer>());
+		output = new double[problemSize];
 		// evaluator variables
 		x2 = new ArrayList<Double>();
 		xSV = new ArrayList<double []>();
@@ -77,6 +79,7 @@ public class Cache {
 		
 		for(int i = 0; i < problemSize; i++){
 			x2.add(norm2(data.get(i)));
+			output[i] = 0.0;
 		}
 	}
 	
@@ -94,24 +97,35 @@ public class Cache {
 		
 		// loop variables
 		int iter = 0;
-		int indCounter = 0;
-		int ind = xIndices.get(indCounter);
-		Violator viol = new Violator(ind,0.0);
-		double[] output = new double[currentSize];
+		int indwviol = xIndices.get(0);
+		Violator viol = new Violator(indwviol,0.0);
 		double[] G = new double[currentSize];
 		Instance sample;
-		double label = data.get(xIndices.get(ind)).classValue();
+		double label = data.get(xIndices.get(indwviol)).classValue();
 		
 		while(iter < maxIter && viol.yo < margin){
 			iter += 1.0;
 			eta = 2.0 / Math.sqrt(iter);
-			// get the sample
-			sample = data.get(ind);
-			
-			
+			// set update variables
 			lambda = eta*C*getLabel(viol.violator, label);
 			LB = (lambda*betta) / currentSize;
-			// TODO: perform update
+			
+			// get the sample
+			sample = data.get(viol.violator);
+			// calculate the kernel vector
+			evalKernel(sample,viol.violator,G);
+			// calculate the output vector (output = output + G*lambda + LB)
+			arrayMulConst(lambda,G); 
+			arrayAdd(G,output);
+			arrayAddConst(LB,output);
+			// update worst violator information
+			alphas.set(viol.violator, alphas.get(viol.violator) + lambda);
+			bias = bias + LB;
+			Ind.add(viol.violator);
+			xSV.add(sample.toDoubleArray());
+			ySV.add(label);
+			svnumber += 1;
+
 			// TODO: find worst violator
 			// TODO: perform sv update
 			
@@ -151,6 +165,51 @@ public class Cache {
 	}
 	
 	/**
+	 * Calculates the RBF kernel vector of instance id, in the range [from,to), based on
+	 * the number of support vectors, and returns the vector in G.
+	 * @param id	- the instance
+	 * @param from	- starting svec
+	 * @param to	- ending svec
+	 * @param G		- Gaussian kernel vector of instance id
+	 */
+	public void evalKernel(Instance sample, int id, double[] G){
+		evalDist(sample, id, G);
+		
+		for(int i = 0; i < svnumber; i++){
+			G[i] = Math.exp(-G[i]*params.getGamma());
+		}
+	}
+	
+	/**
+	 * Evaluates the squared Euclidean distance of a training sample
+	 * @param id
+	 * @param to
+	 * @param G
+	 */
+	public void evalDist(Instance sample, int id, double[] G){
+		double result = 0.0;
+		for(int i = 0; i < svnumber; i++){
+			double x2_id = x2.get(id);
+			double x2_i = x2.get(Ind.get(i));
+			result = dot(sample.toDoubleArray(), xSV.get(i));
+			G[i] = x2_id + x2_i -2*result;
+		}
+	}
+	
+	/**
+	 * Calculates dot product between two instances
+	 * @param	double[],double[]	instance and sv
+	 * @return	double		dot product
+	 */
+	public double dot(double[] x, double[] c){
+		double sums = 0.0;
+		for(int j = 0; j < dim; j++){
+			sums += x[j]*c[j];
+		}
+		return sums;
+	}
+	
+	/**
 	 * Calculates the Euclidean Norm Squared of an instance
 	 * @param	Instance 
 	 * @return	double = sum(x_i^2)
@@ -161,6 +220,38 @@ public class Cache {
 			sums += Math.pow(inst.value(j), 2);
 		}
 		return sums;
+	}
+	
+	/**
+	 * Scales double array by val
+	 * @param array
+	 * @param val
+	 * @return scaledArray
+	 */
+	public void arrayMulConst(double val, double[] array){
+		for(int i = 0; i < currentSize; i++){
+			array[i] = array[i]*val;
+		}
+	}
+	
+	/**
+	 * Sums two double arrays together and puts into result
+	 * @param array
+	 * @param result
+	 */
+	public void arrayAdd(double[] array, double[] result){
+		for(int i = 0; i < currentSize; i++){
+			result[i] = result[i] + array[i];
+		}
+	}
+	
+	/**
+	 * Adds a scalar to a double array and puts into result
+	 * @param val
+	 * @param result
+	 */
+	public void arrayAddConst(double val, double[] result){
+		
 	}
 	
 	public List<Double> getAlphas() {
