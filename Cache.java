@@ -9,6 +9,18 @@ import com.yahoo.labs.samoa.instances.Instances;
 
 public class Cache {
 	/**
+	 * Violator, contains the output value and index of a violator
+	 */
+	protected class Violator {
+		int violator;
+		double yo;
+		
+		Violator(int violator, double yo){
+			this.violator = violator;
+			this.yo = yo;
+		}
+	}
+	/**
 	 * Alpha values
 	 */
 	private List<Double> alphas;
@@ -66,6 +78,54 @@ public class Cache {
 		for(int i = 0; i < problemSize; i++){
 			x2.add(norm2(data.get(i)));
 		}
+	}
+	
+	/**
+	 * Training a binary OLLAWV model
+	 */
+	protected void trainForCache(Instances data){
+		int maxIter = (int) Math.ceil(params.getEpochs()*currentSize);
+		double C = params.getC();
+		double margin = params.getTol()*C;
+		double eta = 0.0;
+		double lambda = 0.0;
+		double LB = 0.0;
+		double betta = params.getBetta(); 
+		
+		// loop variables
+		int iter = 0;
+		int indCounter = 0;
+		int ind = xIndices.get(indCounter);
+		Violator viol = new Violator(ind,0.0);
+		double[] output = new double[currentSize];
+		double[] G = new double[currentSize];
+		Instance sample;
+		double label = data.get(xIndices.get(ind)).classValue();
+		
+		while(iter < maxIter && viol.yo < margin){
+			iter += 1.0;
+			eta = 2.0 / Math.sqrt(iter);
+			// get the sample
+			sample = data.get(ind);
+			
+			
+			lambda = eta*C*getLabel(viol.violator, label);
+			LB = (lambda*betta) / currentSize;
+			// TODO: perform update
+			// TODO: find worst violator
+			// TODO: perform sv update
+			
+		}
+		
+	}
+	
+	/**
+	 * Gets the label of sample v
+	 */
+	public double getLabel(int v, double lab){
+		double[] vals = {1.0, -1.0};
+		int index = (lab == yyNeg) ? 1 : 0;
+		return vals[index];
 	}
 	
 	/**
