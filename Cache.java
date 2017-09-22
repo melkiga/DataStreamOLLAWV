@@ -152,6 +152,7 @@ public class Cache {
 		for(int i = svnumber; i < currentSize; i++){
 			label = getLabel(data.get(i).classValue());
 			ksi = output[i] * label;
+			log.println(ksi);
 			if(ksi < min_val){
 				worstViol.violator = i;
 				worstViol.yo = ksi;
