@@ -30,6 +30,8 @@ public class OLLAWVTester {
 		log.printf("Seed: %d\n", seed);
 		log.printBarrier();
 		
+		log.close();
+		
 		/* Calls Evaluate Interleaved Chunks */
 		DoTask.main(localArgs);
 	}
