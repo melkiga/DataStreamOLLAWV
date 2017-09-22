@@ -10,12 +10,12 @@ public class OLLAWVTester {
 		Logger log = new Logger();
 		/* Set up data configuration. */
 		int numChunks = 2;
-		int chunkSize = 20;
+		int chunkSize = 50;
 		int dim = 2;
 		int seed = 1;
-		int numClasses = 2;
+		int numClasses = 3;
 		String[] localArgs = {"moa.tasks.EvaluateInterleavedChunks -S ", 
-				"-s \"generators.RandomRBFGenerator -r "+seed+" -i "+seed+" -c "+numClasses+" -a "+dim+"\"", 
+				"-s \"generators.RandomRBFGenerator -n 3 -r "+seed+" -i "+seed+" -c "+numClasses+" -a "+dim+"\"", 
 				"-l \"vcu.edu.datastreamlearning.ollawv.OLLASolver -v 1\"", 
 				"-i "+chunkSize*numChunks, 
 				"-f "+dim, 

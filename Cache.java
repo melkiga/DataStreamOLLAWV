@@ -47,6 +47,11 @@ public class Cache {
 	double bias;
 	double yyNeg;
 	
+	/**
+	 * Logger for debugging.
+	 */
+	private static Logger log = new Logger();
+	
 	public Cache(Instances data, int probSize, int d, SVMParameters par){
 		// cache variables
 		problemSize = probSize;
@@ -94,11 +99,12 @@ public class Cache {
 		// loop variables
 		int iter = 0;
 		Violator viol = new Violator(iter,0.0);
+		log.println(viol.violator+1);
 		double[] G = new double[currentSize];
 		Instance sample;
 		double label;
 		
-		do {
+		while(iter < maxIter && viol.yo < margin) {
 			iter += 1.0;
 			eta = 2.0 / Math.sqrt(iter);
 			
@@ -127,11 +133,10 @@ public class Cache {
 
 			// find worst violator
 			viol = findWorstViolator(data);
-			
+			log.println(viol.violator+1);
 			// perform sv update
 			viol.violator = performSVUpdate(data,viol.violator);
-			
-		} while(iter < maxIter && viol.yo < margin);
+		} 
 	}
 	
 	/**
@@ -167,9 +172,24 @@ public class Cache {
 			arraySwap(output, v, svnumber); // output
 			
 			v = svnumber;
-			svnumber += 1;
+			svnumber++;
 		}
 		return v;
+	}
+	
+	/**
+	 * Clear the cache
+	 */
+	public void reset(){
+		Ind.clear();
+		alphas.clear();
+		for(int i = 0; i < currentSize; i++){
+			output[i] = 0.0;
+		}
+		bias = 0.0;
+		xSV.clear();
+		ySV.clear();
+		svnumber = 1;
 	}
 	
 	/**

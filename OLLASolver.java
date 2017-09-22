@@ -8,7 +8,6 @@ package vcu.edu.datastreamlearning.ollawv;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
@@ -129,19 +128,11 @@ public class OLLASolver extends AbstractClassifier {
 		data.setClassIndex(dim);
 		currentSize = num_data;
 		
-		// initialize class indices
-		state.classIndices = new ArrayList<List<Integer>>(num_classes);
-		for(int c = 0; c < num_classes; c++){
-			state.classIndices.add(new ArrayList<Integer>());
-		}
-		
 		// get class sizes & class indices
 		classSizes = new int[num_classes];
 		for(int sample = 0; sample < num_data; sample++){
 			int label = (int) data.get(sample).classValue();
 			classSizes[label]++;
-			
-			state.classIndices.get(label).add(sample);
 		}
 		
 		// initialize pairwise models & assign size of each based on the class sizes
@@ -198,8 +189,7 @@ public class OLLASolver extends AbstractClassifier {
 			
 			setCurrentSize(size);
 			cache.setLabel(trainPair.second);
-			
-			// TODO: see about resetting cache (if needed)
+			cache.reset();
 			
 			// train binary OLLAWV model
 			cache.trainForCache(data);
@@ -253,10 +243,11 @@ public class OLLASolver extends AbstractClassifier {
 				test--;
 			}
 			if(train < test){
+				// TODO: add samples vector that stores the indices of the data
 				data.swap(train++, test--);
 			}
 		}
-		return train;
+		return test;
 	}
 	
 	/** 
@@ -269,7 +260,6 @@ public class OLLASolver extends AbstractClassifier {
 	}
 	
 	// TODO add toString method
-	// TODO add reset method
 
 	@Override
 	public void resetLearningImpl() {
