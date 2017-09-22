@@ -8,6 +8,7 @@ import com.yahoo.labs.samoa.instances.Instance;
 import com.yahoo.labs.samoa.instances.Instances;
 
 public class Cache {
+	private static final int INT_MAX = 999999999;
 	/**
 	 * Violator, contains the output value and index of a violator
 	 */
@@ -45,10 +46,6 @@ public class Cache {
 	List<Double> ySV;
 	double bias;
 	List<Integer> xIndices;
-	/**
-	 * Classes that have value 0, take the negative class, otherwise they are positive
-	 */
-	double[] yVal = {-1.0, 1.0};
 	double yyNeg;
 	
 	public Cache(Instances data, int probSize, int d, SVMParameters par){
@@ -97,40 +94,85 @@ public class Cache {
 		
 		// loop variables
 		int iter = 0;
-		int indwviol = xIndices.get(0);
-		Violator viol = new Violator(indwviol,0.0);
+		Violator viol = new Violator(getSampleIndex(iter),0.0);
 		double[] G = new double[currentSize];
 		Instance sample;
-		double label = data.get(xIndices.get(indwviol)).classValue();
+		double label;
 		
 		while(iter < maxIter && viol.yo < margin){
 			iter += 1.0;
 			eta = 2.0 / Math.sqrt(iter);
-			// set update variables
-			lambda = eta*C*getLabel(viol.violator, label);
-			LB = (lambda*betta) / currentSize;
 			
 			// get the sample
 			sample = data.get(viol.violator);
+			label = data.get(viol.violator).classValue(); 
+			
+			// set update variables
+			lambda = eta*C*getLabel(label);
+			LB = (lambda*betta) / currentSize;
+			
 			// calculate the kernel vector
 			evalKernel(sample,viol.violator,G);
+			
 			// calculate the output vector (output = output + G*lambda + LB)
 			arrayMulConst(lambda,G); 
 			arrayAdd(G,output);
 			arrayAddConst(LB,output);
+			
 			// update worst violator information
-			alphas.set(viol.violator, alphas.get(viol.violator) + lambda);
+			alphas.set(viol.violator, alphas.get(viol.violator) + lambda); // (alpha(i) = alpha(i) + lambda)
 			bias = bias + LB;
 			Ind.add(viol.violator);
 			xSV.add(sample.toDoubleArray());
 			ySV.add(label);
-			svnumber += 1;
 
-			// TODO: find worst violator
-			// TODO: perform sv update
+			// find worst violator
+			viol = findWorstViolator(data);
 			
+			// perform sv update
+			viol.violator = performSVUpdate(data,viol.violator);
 		}
 		
+	}
+	
+	/**
+	 * Finds index and value of worst violator excluding support vectors
+	 * @param data
+	 * @return
+	 */
+	public Violator findWorstViolator(Instances data){
+		double min_val = INT_MAX;
+		double ksi = 0.0;
+		int index = getSampleIndex(svnumber);
+		double label = 0.0;
+		Violator worstViol = new Violator(index,0);
+		for(int i = svnumber; i < currentSize; i++){
+			index = getSampleIndex(i);
+			label = getLabel(data.get(index).classValue());
+			ksi = output[index] * label;
+			if(ksi < min_val){
+				worstViol.violator = index;
+				worstViol.yo = ksi;
+				min_val = ksi;
+			}
+		}
+		return worstViol;
+	}
+	
+	/**
+	 * Swaps the samples to stack the support vectors on top
+	 * @param v
+	 */
+	public int performSVUpdate(Instances data, int v){
+		if(v >= svnumber){
+			Collections.swap(x2, v, svnumber); // x2
+			Collections.swap(xIndices, v, svnumber); // xIndices
+			arraySwap(output, v, svnumber); // output
+			data.swap(v, svnumber); // data
+			v = svnumber;
+			svnumber += 1;
+		}
+		return v;
 	}
 	
 	/**
@@ -226,9 +268,30 @@ public class Cache {
 	}
 	
 	/**
+	 * Swap two elements in double array
+	 * @param array
+	 * @param i
+	 * @param j
+	 */
+	public void arraySwap(double[] array, int i, int j){
+		double temp = array[i];
+		array[i] = array[j];
+		array[j] = temp;
+	}
+	
+	/**
+	 * Returns the sample index based on the samples for this pairwise classifier
+	 * @param v
+	 * @return
+	 */
+	public int getSampleIndex(int v){
+		return xIndices.get(v);
+	}
+	
+	/**
 	 * Gets the label of sample v
 	 */
-	public double getLabel(int v, double lab){
+	public double getLabel(double lab){
 		double[] vals = {1.0, -1.0};
 		int index = (lab == yyNeg) ? 1 : 0;
 		return vals[index];
