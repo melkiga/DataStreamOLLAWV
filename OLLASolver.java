@@ -194,9 +194,9 @@ public class OLLASolver extends AbstractClassifier {
 			setCurrentSize(size);
 			cache.setLabel(trainPair.second);
 			cache.setIndices(state.classIndices.get(trainPair.first), state.classIndices.get(trainPair.second));
-			// TODO: check if reset() for cache is needed here
+			cache.initialize(data); // equivalent to resetting the cache
 			
-			// TODO: add train for cache here
+			cache.trainForCache(data);
 			
 			state.models.get(i).setAlphas(cache.getAlphas());
 			state.models.get(i).setInd(cache.getInd());
