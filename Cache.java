@@ -112,7 +112,7 @@ public class Cache {
 			LB = (lambda*betta) / currentSize;
 			
 			// calculate the kernel vector
-			evalKernel(sample,viol.violator,G);
+			//evalKernel(sample,viol.violator,G);
 			
 			// calculate the output vector (output = output + G*lambda + LB)
 			arrayMulConst(lambda,G); 
@@ -292,7 +292,7 @@ public class Cache {
 	 * Gets the label of sample v
 	 */
 	public double getLabel(double lab){
-		double[] vals = {1.0, -1.0};
+		double[] vals = {-1.0, 1.0};
 		int index = (lab == yyNeg) ? 1 : 0;
 		return vals[index];
 	}
