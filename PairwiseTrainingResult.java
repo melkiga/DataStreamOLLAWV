@@ -32,6 +32,11 @@ public class PairwiseTrainingResult {
 	 * Data class pair
 	 */
 	Tuple<Integer,Integer> trainingLabels;
+	/**
+	 * Support vector data
+	 */
+	private List<double[]> xSV;
+	private List<Double> ySV;
 	
 	/**
 	 * Constructor for OLLAWV model
@@ -40,6 +45,8 @@ public class PairwiseTrainingResult {
 		this.setParams(params);
 		setAlphas(new ArrayList<Double>(size));
 		setInd(new ArrayList<Integer>(size));
+		setxSV(new ArrayList<double[]>(size));
+		setySV(new ArrayList<Double>(size));
 		setSvnumber(0);
 		setBias(0.0);
 		this.trainingLabels = trainingLabels;
@@ -83,5 +90,21 @@ public class PairwiseTrainingResult {
 
 	public void setAlphas(List<Double> alphas) {
 		this.alphas = alphas;
+	}
+
+	public List<double[]> getxSV() {
+		return xSV;
+	}
+
+	public void setxSV(List<double[]> xSV) {
+		this.xSV = xSV;
+	}
+
+	public List<Double> getySV() {
+		return ySV;
+	}
+
+	public void setySV(List<Double> ySV) {
+		this.ySV = ySV;
 	}
 }

@@ -193,6 +193,8 @@ public class OLLASolver extends AbstractClassifier {
 			state.models.get(i).setInd(cache.getInd());
 			state.models.get(i).setBias(cache.bias);
 			state.models.get(i).setSvnumber(cache.svnumber-1);
+			state.models.get(i).setxSV(cache.xSV);
+			state.models.get(i).setySV(cache.ySV);
 			// save largest svnumber
 			if(state.models.get(i).getSvnumber() > svNum){
 				svNum = state.models.get(i).getSvnumber();
