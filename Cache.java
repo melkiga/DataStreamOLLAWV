@@ -48,11 +48,6 @@ public class Cache {
 	double yyNeg;
 	int[] samples;
 	
-	/**
-	 * Logger for debugging.
-	 */
-	private static Logger log = new Logger();
-	
 	public Cache(Instances data, int probSize, int d, SVMParameters par){
 		// cache variables
 		problemSize = probSize;
@@ -105,7 +100,7 @@ public class Cache {
 		double[] G = new double[currentSize];
 		Instance sample;
 		double label;
-
+		
 		do {
 			iter += 1.0;
 			eta = 2.0 / Math.sqrt(iter);
