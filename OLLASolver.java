@@ -8,6 +8,8 @@ package vcu.edu.datastreamlearning.ollawv;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
@@ -235,6 +237,7 @@ public class OLLASolver extends AbstractClassifier {
 		int second = trainPair.second;
 		int train = 0;
 		int test = size-1;		
+		List<Double> x2now = cache.x2;
 		while(train <= test){
 			while(train < size && (data.get(train).classValue() == first || data.get(train).classValue() == second)){
 				train++;
@@ -243,11 +246,16 @@ public class OLLASolver extends AbstractClassifier {
 				test--;
 			}
 			if(train < test){
-				// TODO: add samples vector that stores the indices of the data
-				data.swap(train++, test--);
+				data.swap(train, test);
+				Collections.swap(x2now, train, test); // x2
+				
+				train = train + 1;
+				test = test - 1;
 			}
 		}
-		return test;
+		cache.x2 = x2now;
+		log.println(cache.x2.toString());
+		return train;
 	}
 	
 	/** 
