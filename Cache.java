@@ -46,6 +46,7 @@ public class Cache {
 	List<Double> ySV;
 	double bias;
 	double yyNeg;
+	int[] samples;
 	
 	/**
 	 * Logger for debugging.
@@ -71,6 +72,7 @@ public class Cache {
 		setAlphas(new ArrayList<Double>());
 		setInd(new ArrayList<Integer>());
 		output = new double[problemSize];
+		samples = new int[problemSize];
 		// evaluator variables
 		x2 = new ArrayList<Double>();
 		xSV = new ArrayList<double []>();
@@ -81,6 +83,7 @@ public class Cache {
 		for(int i = 0; i < problemSize; i++){
 			x2.add(norm2(data.get(i)));
 			output[i] = 0.0;
+			samples[i] = i;
 		}
 	}
 	
@@ -99,12 +102,11 @@ public class Cache {
 		// loop variables
 		int iter = 0;
 		Violator viol = new Violator(iter,0.0);
-		log.println(viol.violator+1);
 		double[] G = new double[currentSize];
 		Instance sample;
 		double label;
-		
-		while(iter < maxIter && viol.yo < margin) {
+
+		do {
 			iter += 1.0;
 			eta = 2.0 / Math.sqrt(iter);
 			
@@ -130,13 +132,12 @@ public class Cache {
 			Ind.add(viol.violator);
 			xSV.add(sample.toDoubleArray());
 			ySV.add(label);
-
 			// find worst violator
 			viol = findWorstViolator(data);
-			log.println(viol.violator+1);
 			// perform sv update
-			viol.violator = performSVUpdate(data,viol.violator);
-		} 
+			viol.violator = performSVUpdate(viol.violator,data);
+			
+		} while(viol.yo < margin && iter < maxIter); 
 	}
 	
 	/**
@@ -152,7 +153,6 @@ public class Cache {
 		for(int i = svnumber; i < currentSize; i++){
 			label = getLabel(data.get(i).classValue());
 			ksi = output[i] * label;
-			log.println(ksi);
 			if(ksi < min_val){
 				worstViol.violator = i;
 				worstViol.yo = ksi;
@@ -166,16 +166,21 @@ public class Cache {
 	 * Swaps the samples to stack the support vectors on top
 	 * @param v
 	 */
-	public int performSVUpdate(Instances data, int v){
+	public int performSVUpdate(int v, Instances data){
 		if(v >= svnumber){
 			data.swap(v, svnumber); // data
 			Collections.swap(x2, v, svnumber); // x2
-			arraySwap(output, v, svnumber); // output
+			arraySwap(v, svnumber, output); // output
+			arraySwap(v, svnumber, samples); //samples
 			
 			v = svnumber;
 			svnumber++;
 		}
 		return v;
+	}
+	
+	public void swapCache(int u, int v){
+		Collections.swap(x2, v, svnumber); // x2
 	}
 	
 	/**
@@ -186,6 +191,7 @@ public class Cache {
 		alphas.clear();
 		for(int i = 0; i < currentSize; i++){
 			output[i] = 0.0;
+			samples[i] = i;
 		}
 		bias = 0.0;
 		xSV.clear();
@@ -289,7 +295,19 @@ public class Cache {
 	 * @param i
 	 * @param j
 	 */
-	public void arraySwap(double[] array, int i, int j){
+	public void arraySwap(int i, int j, int[] array){
+		int temp = array[i];
+		array[i] = array[j];
+		array[j] = temp;
+	}
+	
+	/**
+	 * Swap two elements in double array
+	 * @param array
+	 * @param i
+	 * @param j
+	 */
+	public void arraySwap(int i, int j, double[] array){
 		double temp = array[i];
 		array[i] = array[j];
 		array[j] = temp;
