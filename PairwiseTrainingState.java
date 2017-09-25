@@ -8,14 +8,30 @@ import java.util.List;
  *
  */
 public class PairwiseTrainingState {
+	/**
+	 * List of models
+	 */
 	protected List<PairwiseTrainingResult> models;
+	/**
+	 * Max number of support vectors for all models
+	 */
 	private int svNumber;
+	/**
+	 * Max number of labels
+	 */
 	private int labelNumber;
+	/**
+	 * Testing holders for models
+	 */
+	private int[] votes;
+	private double[] evidence;
 	
 	public PairwiseTrainingState(){
 		models = null;
 		svNumber = -1;
 		labelNumber = -1;
+		setVotes(null);
+		setEvidence(null);
 	}
 	
 	public List<PairwiseTrainingResult> getModels() {
@@ -35,5 +51,21 @@ public class PairwiseTrainingState {
 	}
 	public void setLabelNumber(int labelNumber) {
 		this.labelNumber = labelNumber;
+	}
+
+	public int[] getVotes() {
+		return votes;
+	}
+
+	public void setVotes(int[] votes) {
+		this.votes = votes;
+	}
+
+	public double[] getEvidence() {
+		return evidence;
+	}
+
+	public void setEvidence(double[] evidence) {
+		this.evidence = evidence;
 	}
 }
