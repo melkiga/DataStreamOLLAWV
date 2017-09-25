@@ -199,21 +199,17 @@ public class OLLASolver extends AbstractClassifier {
 			if(state.models.get(i).getSvnumber() > svNum){
 				svNum = state.models.get(i).getSvnumber();
 			}
-			// for debugging
-			if(vOption.getValue() == 1){
-				log.printBarrier();
-				log.print("trainOnInstances(Instances data)::");
-				log.printf("\tPair 1:(%d,%d)\n", trainPair.first, trainPair.second);
-				log.printf("\tNumber of Support Vectors: %d\n", cache.svnumber-1);
-				log.printf("\tBias: %2.4f\n", cache.bias);
-				log.println("        Alphas: "+cache.getAlphas().toString());
-				log.println("        Inds: "+cache.getInd().toString());
-				log.printBarrier();
-			}
 		}
 		// set the sv number to be the highest of the models
 		state.setSvNumber(svNum);
 		currentSize = totalSize;
+		
+		// for debugging
+		if(vOption.getValue() == 1){
+			log.printBarrier();
+			log.println(this.toString());
+			log.printBarrier();
+		}
 	}
 	
 	/**
@@ -259,7 +255,26 @@ public class OLLASolver extends AbstractClassifier {
 		return null;
 	}
 	
-	// TODO add toString method
+	/**
+	 * Returns a string of the model
+	 * @return
+	 */
+	public String toString(){
+		StringBuffer buff = new StringBuffer();
+		buff.append("Total number of Pairwise Models: "+state.models.size()+"\n");
+		buff.append("Max SV Number: "+state.getSvNumber()+"\n");
+		
+		for(int i = 0; i < state.models.size(); i++){
+			PairwiseTrainingResult model = state.models.get(i);
+			buff.append("\tPair "+i+":("+model.trainingLabels.first+","+model.trainingLabels.second+")\n");
+			buff.append("\tNumber of Support Vectors: "+model.getSvnumber()+"\n");
+			buff.append("\tBias: "+model.getBias()+"\n");
+			buff.append("        Alphas: "+model.getAlphas().toString()+"\n");
+			buff.append("        Inds: "+model.getInd().toString()+"\n");
+			buff.append("----------------------------------\n");
+		}
+        return buff.toString();
+	}
 
 	@Override
 	public void resetLearningImpl() {
@@ -269,7 +284,6 @@ public class OLLASolver extends AbstractClassifier {
 
 	@Override
 	public void trainOnInstanceImpl(Instance inst) {
-		// TODO Trains the classifier on a given instance
 		log.print("ERROR: trainOnInstanceImpl was called and no implementation for this yet.\n");
 		System.err.println("trainOnInstanceImpl::This sould not happen.");
 	}
