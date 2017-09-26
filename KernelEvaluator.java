@@ -7,7 +7,6 @@ public class KernelEvaluator {
 	protected Instances data;
 	protected int problemSize;
 	protected double[] x2;
-	int[] samples;
 	
 	double bias;
 	
@@ -26,10 +25,8 @@ public class KernelEvaluator {
 		
 		// initialize x^2
 		x2 = new double[problemSize];
-		samples = new int[problemSize];
 		for(int i = 0; i < problemSize; i++){
 			x2[i] = Numeric.norm2(data.get(i));
-			samples[i] = i;
 		}
 	}
 	
@@ -72,13 +69,10 @@ public class KernelEvaluator {
 	public void swap(int i, int j){
 		data.swap(i, j); 
 		Numeric.arraySwap(i, j, x2);
-		Numeric.arraySwap(i, j, samples);
 	}
 	
 	public void reset(){
-		for(int i = 0; i < problemSize; i++){
-			samples[i] = i;
-		}
+		
 	}
 	
 	/**
