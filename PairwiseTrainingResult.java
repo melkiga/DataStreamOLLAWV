@@ -52,31 +52,6 @@ public class PairwiseTrainingResult {
 		setBias(0.0);
 		this.trainingLabels = trainingLabels;
 	}
-	
-	/**
-	 * Calculates RBF Gaussian kernel vector of xSV and instance. This is called by testing function.
-	 * @param inst - unknown test instance
-	 * @param x - X data for support vectors
-	 * @param x2 - Norm squared for support vectors
-	 * @param svnum - Max number of SV
-	 * @param G - Kernel vector
-	 */
-	public void evalInnerKernel(Instance inst, List<double[]> x, List<Double> x2, double[] G){
-		// evaluate distance
-		double result = 0.0;
-		double x2_i = Numeric.norm2(inst);
-		int dim = inst.numAttributes()-1;
-		int size = x.size();
-		for(int i = 0; i < size; i++){
-			double x2_id = x2.get(i);
-			result = Numeric.dot(inst.toDoubleArray(), x.get(i), dim);
-			G[i] = x2_id + x2_i -2*result;
-		}
-		
-		for(int i = 0; i < size; i++){
-			G[i] = Math.exp(-G[i]*params.getGamma());
-		}
-	}
 
 	public SVMParameters getParams() {
 		return params;
