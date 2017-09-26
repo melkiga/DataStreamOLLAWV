@@ -1,7 +1,10 @@
 package vcu.edu.datastreamlearning.ollawv;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import com.yahoo.labs.samoa.instances.Instance;
 /**
  * This is equivalent to the PairwiseTrainingResult
  * @author Gabriella Melki
@@ -12,10 +15,6 @@ public class PairwiseTrainingResult {
 	 * Alpha values
 	 */
 	private List<Double> alphas;
-	/**
-	 * Support vector indices
-	 */
-	private List<Integer> Ind;
 	/**
 	 * Number of support vectors.
 	 */
@@ -46,13 +45,37 @@ public class PairwiseTrainingResult {
 	public PairwiseTrainingResult(SVMParameters params, int size, Tuple<Integer,Integer> trainingLabels){
 		this.setParams(params);
 		setAlphas(new ArrayList<Double>(size));
-		setInd(new ArrayList<Integer>(size));
 		setxSV(new ArrayList<double[]>(size));
 		setySV(new ArrayList<Double>(size));
 		setX2(new ArrayList<Double>(size));
 		setSvnumber(0);
 		setBias(0.0);
 		this.trainingLabels = trainingLabels;
+	}
+	
+	/**
+	 * Calculates RBF Gaussian kernel vector of xSV and instance. This is called by testing function.
+	 * @param inst - unknown test instance
+	 * @param x - X data for support vectors
+	 * @param x2 - Norm squared for support vectors
+	 * @param svnum - Max number of SV
+	 * @param G - Kernel vector
+	 */
+	public void evalInnerKernel(Instance inst, List<double[]> x, List<Double> x2, double[] G){
+		// evaluate distance
+		double result = 0.0;
+		double x2_i = Numeric.norm2(inst);
+		int dim = inst.numAttributes()-1;
+		int size = x.size();
+		for(int i = 0; i < size; i++){
+			double x2_id = x2.get(i);
+			result = Numeric.dot(inst.toDoubleArray(), x.get(i), dim);
+			G[i] = x2_id + x2_i -2*result;
+		}
+		
+		for(int i = 0; i < size; i++){
+			G[i] = Math.exp(-G[i]*params.getGamma());
+		}
 	}
 
 	public SVMParameters getParams() {
@@ -79,20 +102,12 @@ public class PairwiseTrainingResult {
 		this.svnumber = svnumber;
 	}
 
-	public List<Integer> getInd() {
-		return Ind;
-	}
-
-	public void setInd(List<Integer> ind) {
-		Ind = ind;
-	}
-
 	public List<Double> getAlphas() {
 		return alphas;
 	}
 
 	public void setAlphas(List<Double> alphas) {
-		this.alphas = alphas;
+		this.alphas = new ArrayList<Double>(alphas);
 	}
 
 	public List<double[]> getxSV() {
@@ -100,7 +115,7 @@ public class PairwiseTrainingResult {
 	}
 
 	public void setxSV(List<double[]> xSV) {
-		this.xSV = xSV;
+		this.xSV = new ArrayList<double[]>(xSV);
 	}
 
 	public List<Double> getySV() {
@@ -108,7 +123,7 @@ public class PairwiseTrainingResult {
 	}
 
 	public void setySV(List<Double> ySV) {
-		this.ySV = ySV;
+		this.ySV = new ArrayList<Double>(ySV);
 	}
 
 	public int[] getSamples() {
@@ -116,7 +131,7 @@ public class PairwiseTrainingResult {
 	}
 
 	public void setSamples(int[] samples) {
-		this.samples = samples;
+		this.samples = Arrays.copyOf(samples, svnumber);
 	}
 
 	public List<Double> getX2() {
@@ -124,6 +139,6 @@ public class PairwiseTrainingResult {
 	}
 
 	public void setX2(List<Double> x2) {
-		this.x2 = x2;
+		this.x2 = new ArrayList<Double>(x2);
 	}
 }

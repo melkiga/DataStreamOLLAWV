@@ -8,7 +8,6 @@ package vcu.edu.datastreamlearning.ollawv;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
@@ -156,7 +155,7 @@ public class OLLASolver extends AbstractClassifier {
 		state.setLabelNumber(num_classes);
 		
 		// build the cache
-		cache = new Cache(data,num_data,dim,params);
+		cache = new Cache(data,num_data,params);
 		
 		// for debugging
 		if(vOption.getValue() == 1){
@@ -185,25 +184,23 @@ public class OLLASolver extends AbstractClassifier {
 		int svNum = 0;
 		int totalSize = num_data;
 		for(int i = 0; i < state.models.size(); i++){
+			// reorder samples based on training pair
 			Tuple<Integer,Integer> trainPair = state.models.get(i).trainingLabels;
-			int size = reorderSamples(trainPair, totalSize, data);
-			
+			int size = reorderSamples(trainPair, totalSize);
 			setCurrentSize(size);
 			cache.setLabel(trainPair.second);
 			cache.reset();
 			
 			// train binary OLLAWV model
-			cache.trainForCache(data);
+			cache.trainForCache();
 			
 			// update pairwise training model
 			state.models.get(i).setAlphas(cache.getAlphas());
-			state.models.get(i).setInd(cache.getInd());
 			state.models.get(i).setBias(cache.bias);
 			state.models.get(i).setSvnumber(cache.svnumber-1);
 			state.models.get(i).setxSV(cache.xSV);
 			state.models.get(i).setySV(cache.ySV);
-			state.models.get(i).setSamples(cache.samples);
-			state.models.get(i).setX2(cache.x2);
+			state.models.get(i).setSamples(cache.eval.samples);
 			
 			// save largest svnumber
 			if(state.models.get(i).getSvnumber() > svNum){
@@ -233,21 +230,21 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Orders samples based on the current label training pair
 	 */
-	public int reorderSamples(Tuple<Integer,Integer> trainPair, int size, Instances data){
+	public int reorderSamples(Tuple<Integer,Integer> trainPair, int size){
 		int first = trainPair.first;
 		int second = trainPair.second;
 		int train = 0;
 		int test = size-1;		
 		while(train <= test){
-			while(train < size && (data.get(train).classValue() == first || data.get(train).classValue() == second)){
+			while(train < size && (cache.eval.data.get(train).classValue() == first || cache.eval.data.get(train).classValue() == second)){
 				train++;
 			}
-			while(test >= 0 && (data.get(test).classValue() != first && data.get(test).classValue() != second)){
+			while(test >= 0 && (cache.eval.data.get(test).classValue() != first && cache.eval.data.get(test).classValue() != second)){
 				test--;
 			}
 			if(train < test){
-				data.swap(train, test);
-				Collections.swap(cache.x2, train, test); // x2
+				Numeric.arraySwap(train, test, samples); // samples
+				cache.eval.swap(train, test);
 				
 				train = train + 1;
 				test = test - 1;
@@ -299,7 +296,6 @@ public class OLLASolver extends AbstractClassifier {
 			buff.append("\tNumber of Support Vectors: "+model.getSvnumber()+"\n");
 			buff.append("\tBias: "+model.getBias()+"\n");
 			buff.append("        Alphas: "+model.getAlphas().toString()+"\n");
-			buff.append("        Inds: "+model.getInd().toString()+"\n");
 			buff.append("        Samples: "+Arrays.toString(model.getSamples())+"\n");
 			buff.append("----------------------------------\n");
 		}
