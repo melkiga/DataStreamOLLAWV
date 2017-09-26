@@ -23,8 +23,8 @@ public class PairwiseTrainingState {
 	/**
 	 * Testing holders for models
 	 */
-	private int[] votes;
-	private double[] evidence;
+	protected int[] votes;
+	protected double[] evidence;
 	
 	public PairwiseTrainingState(){
 		models = null;

@@ -1,5 +1,6 @@
 package vcu.edu.datastreamlearning.ollawv;
 
+import com.yahoo.labs.samoa.instances.Instance;
 import com.yahoo.labs.samoa.instances.Instances;
 
 public class KernelEvaluator {
@@ -31,9 +32,23 @@ public class KernelEvaluator {
 	}
 	
 	/**
+	 * Calculates RBF Gaussian kernel vector of Instance inst
+	 * @param Instnace
+	 * @param to
+	 * @param G
+	 */
+	public void evalKernel(Instance inst, int to, double[] G){
+		evalDist(inst, to, G);
+		
+		for(int i = 0; i < to; i++){
+			G[i] = Math.exp(G[i]*gamma);
+		}
+	}
+	
+	/**
 	 * Calculates RBF Gaussian kernel vector of indwviol
-	 * @param data
 	 * @param indwviol
+	 * @param to
 	 * @param G
 	 */
 	public void evalKernel(int indwviol, int to, double[] G){
@@ -45,9 +60,26 @@ public class KernelEvaluator {
 	}
 	
 	/**
-	 * Evaluates Euclidean distance between indwviol and the rest of the data
-	 * @param data
+	 * Evaluates Euclidean distance between Instance inst up till to
 	 * @param indwviol
+	 * @param to
+	 * @param G
+	 */
+	public void evalDist(Instance inst, int to, double[] G){
+		double result = 0.0;
+		int dim = inst.numAttributes()-1;
+		double x2_i = Numeric.norm2(inst);
+		for(int i = 0; i < to; i++){
+			double x2_id = x2[i];
+			result = Numeric.dot(data.get(i).toDoubleArray(), inst.toDoubleArray(), dim);
+			G[i] = x2_id + x2_i -2*result;
+		}
+	}
+	
+	/**
+	 * Evaluates Euclidean distance between indwviol and the rest of the data
+	 * @param indwviol
+	 * @param to
 	 * @param G
 	 */
 	public void evalDist(int indwviol, int to, double[] G){

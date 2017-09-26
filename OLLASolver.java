@@ -160,8 +160,7 @@ public class OLLASolver extends AbstractClassifier {
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
-			log.printInstances(data);
-			log.printBarrier();
+			log.println("INITIALIZATION NEW CHUNK");
 			log.println("intialize(Instances data)::");
 			log.printf("\tTotal number of data: %d\n", this.num_data);
 			log.printf("\tDimensionality: %d\n", this.dim);
@@ -180,9 +179,17 @@ public class OLLASolver extends AbstractClassifier {
 	@Override
 	public void trainOnInstances(Instances data) {
 		// if nothing has been initialized (chunk 1)
-		if(cache == null){
-			intialize(data);
+		//if(cache == null){
+		intialize(data);
+		//}
+		
+		// for debugging
+		if(vOption.getValue() == 1){
+			log.printBarrier();
+			log.printInstances(data);
+			log.printBarrier();
 		}
+		
 		// set up the environment for each pairwise model
 		int svNum = 0;
 		int totalSize = num_data;
@@ -231,8 +238,6 @@ public class OLLASolver extends AbstractClassifier {
 		if(vOption.getValue() == 1){
 			log.printBarrier();
 			log.println(this.toString());
-			log.printBarrier();
-			log.printInstances(data);
 			log.printBarrier();
 		}
 	}
@@ -283,22 +288,57 @@ public class OLLASolver extends AbstractClassifier {
      */
 	@Override
 	public double[] getVotesForInstance(Instance inst) {
+		double[] result = new double[num_classes];
+		// initialize votes and evidence
 		state.setVotes(new int[num_classes]);
 		state.setEvidence(new double[num_classes]);
-		
-		
-		
-		for(int i = 0; i < state.models.size(); i++){
-			PairwiseTrainingResult model = state.models.get(i);
-			// calculate the kernel vector
-			double[] G = new double[model.getSvnumber()];
-
-			// TODO: get decision for model function
-			
-			
+		// calculate the kernel vector for all SVs
+		int svnumber = state.getSvNumber();
+		double[] G = new double[svnumber];
+		eval.evalKernel(inst, svnumber, G);
+		// for each model, calculate output and fill votes and evidence
+		for(Iterator<PairwiseTrainingResult> it = state.models.iterator(); it.hasNext();){
+			PairwiseTrainingResult model = it.next();
+			double dec = getDecisionForModel(model,G);
+			int label = dec > 0 ? model.trainingLabels.first : model.trainingLabels.second;
+			state.votes[label]++;
+			state.evidence[model.trainingLabels.first] += dec;
+			state.evidence[model.trainingLabels.second] += dec;
+		}
+		// get the winning class (includes tied classes)
+		int maxLabelId = 0;
+		int maxVotes = 0;
+		double maxEvidence = 0;
+		for(int i = 0; i < state.getLabelNumber(); i++){
+			if(state.votes[i] > maxVotes
+				|| (state.votes[i] == maxVotes && state.evidence[i] > maxEvidence)){
+				maxLabelId = i;
+				maxVotes = state.votes[i];
+				maxEvidence = state.evidence[i];
+			}
 		}
 		
-		return null;
+		result[maxLabelId]++;
+		
+		if(maxLabelId == inst.classValue()){
+			// correct!
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Get model output
+	 * @param model
+	 * @param G
+	 * @return G*alpha + bias
+	 */
+	public double getDecisionForModel(PairwiseTrainingResult model, double[] G){
+		double dec = model.getBias();
+		for(int sample = 0; sample < model.getSvnumber(); sample++){
+			dec += model.getAlpha(sample) * G[model.getSample(sample)];
+		}
+		return dec;
 	}
 	
 	/**
@@ -324,9 +364,7 @@ public class OLLASolver extends AbstractClassifier {
 
 	@Override
 	public void resetLearningImpl() {
-		if(cache != null){
-			cache.reset();
-		}
+
 	}
 
 	@Override
