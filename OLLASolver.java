@@ -83,6 +83,7 @@ public class OLLASolver extends AbstractClassifier {
 	 * Cache + Kernel Evaluator
 	 */
 	protected Cache cache;
+	protected KernelEvaluator eval;
 	
 	/**
 	 * Sets options for model and initializes header for data.
@@ -103,6 +104,7 @@ public class OLLASolver extends AbstractClassifier {
 		this.state = new PairwiseTrainingState();
 		// Set cache to be null
 		cache = null;
+		eval = null;
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
@@ -149,8 +151,11 @@ public class OLLASolver extends AbstractClassifier {
 		// set the last label number as max label
 		state.setLabelNumber(num_classes);
 		
+		// build the kernel evaluator
+		eval = new KernelEvaluator(data, num_data, params.getGamma());
+		
 		// build the cache
-		cache = new Cache(data,num_data,params);
+		cache = new Cache(num_data,params,eval);
 		
 		// for debugging
 		if(vOption.getValue() == 1){
@@ -280,14 +285,14 @@ public class OLLASolver extends AbstractClassifier {
 	public double[] getVotesForInstance(Instance inst) {
 		state.setVotes(new int[num_classes]);
 		state.setEvidence(new double[num_classes]);
-		// TODO: I need to store a unique set of x data for the support vectors 
-		//		in order to not recalculate the kernel for each model's SVs.
+		
+		
 		
 		for(int i = 0; i < state.models.size(); i++){
 			PairwiseTrainingResult model = state.models.get(i);
 			// calculate the kernel vector
 			double[] G = new double[model.getSvnumber()];
-			model.evalInnerKernel(inst, model.getxSV(), model.getX2(), G);
+
 			// TODO: get decision for model function
 			
 			
@@ -319,7 +324,9 @@ public class OLLASolver extends AbstractClassifier {
 
 	@Override
 	public void resetLearningImpl() {
-		cache.reset();
+		if(cache != null){
+			cache.reset();
+		}
 	}
 
 	@Override

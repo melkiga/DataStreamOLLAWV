@@ -3,8 +3,6 @@ package vcu.edu.datastreamlearning.ollawv;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.yahoo.labs.samoa.instances.Instances;
-
 public class Cache {
 	private static final int INT_MAX = 999999999;
 	/**
@@ -40,13 +38,13 @@ public class Cache {
 	 */
 	KernelEvaluator eval;
 	
-	public Cache(Instances data, int probSize, SVMParameters par){
+	public Cache(int probSize, SVMParameters par, KernelEvaluator eval){
 		// cache variables
 		problemSize = probSize;
 		currentSize = probSize;
 		params = par;
 		svnumber = 1;
-		eval = new KernelEvaluator(data, probSize, par.getGamma());
+		this.eval = eval;
 		
 		initialize();
 	}
