@@ -174,6 +174,7 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
+		// if nothing has been initialized (chunk 1)
 		if(cache == null){
 			intialize(data);
 		}
@@ -183,12 +184,12 @@ public class OLLASolver extends AbstractClassifier {
 		for(int i = 0; i < state.models.size(); i++){
 			// reorder samples based on training pair
 			Tuple<Integer,Integer> trainPair = state.models.get(i).trainingLabels;
-			int size = reorderSamples(trainPair, totalSize);
+			int size = reorderSamples(trainPair, totalSize); // sort samples based on the current label pair
 			setCurrentSize(size);
 			cache.setLabel(trainPair.second);
 			cache.reset();
 			
-			// train binary OLLAWV model
+			// train binary OLLAWV model on current training pair
 			cache.trainForCache();
 			
 			// update pairwise training model
@@ -202,7 +203,7 @@ public class OLLASolver extends AbstractClassifier {
 				svNum = state.models.get(i).getSvnumber();
 			}
 		}
-		
+		// sort the data so that all the support vectors are on top
 		int freeOffset = 0;
 		int[] mapping = cache.forwardOrder;
 		for(Iterator<PairwiseTrainingResult> it = state.models.iterator(); it.hasNext();){
@@ -217,7 +218,7 @@ public class OLLASolver extends AbstractClassifier {
 			}
 		}
 		
-		// set the sv number to be the highest of the models
+		// set the SV number to be the total number of SVs per model with no repeats
 		state.setSvNumber(freeOffset);
 		currentSize = totalSize;
 		
@@ -241,6 +242,9 @@ public class OLLASolver extends AbstractClassifier {
 	
 	/**
 	 * Orders samples based on the current label training pair
+	 * @param trainPair
+	 * @param size
+	 * @return number of samples for this training pair
 	 */
 	public int reorderSamples(Tuple<Integer,Integer> trainPair, int size){
 		int first = trainPair.first;
@@ -308,8 +312,6 @@ public class OLLASolver extends AbstractClassifier {
 			buff.append("\tBias: "+model.getBias()+"\n");
 			buff.append("        Alphas: "+model.getAlphas().toString()+"\n");
 			buff.append("        Samples: "+Arrays.toString(model.getSamples())+"\n");
-			//buff.append("        ForwardOrder: "+Arrays.toString(cache.forwardOrder)+"\n");
-			//buff.append("        BackwardOrder: "+Arrays.toString(cache.backwardOrder)+"\n");
 			buff.append("----------------------------------\n");
 		}
         return buff.toString();
@@ -317,14 +319,17 @@ public class OLLASolver extends AbstractClassifier {
 
 	@Override
 	public void resetLearningImpl() {
-		// TODO reset the learner
-		
+		cache.reset();
 	}
 
 	@Override
 	public void trainOnInstanceImpl(Instance inst) {
 		log.print("ERROR: trainOnInstanceImpl was called and no implementation for this yet.\n");
-		System.err.println("trainOnInstanceImpl::This sould not happen.");
+		try {
+			throw new Exception("trainOnInstanceImpl was called and no implementation for this yet.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

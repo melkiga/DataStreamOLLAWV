@@ -30,12 +30,8 @@ public class Cache {
 	int currentSize;
 	int svnumber;
 	double[] output;
-	
 	int[] forwardOrder;
 	int[] backwardOrder;
-	/**
-	 * Kernel parameters
-	 */
 	SVMParameters params;
 	double bias;
 	double yyNeg;
@@ -96,8 +92,7 @@ public class Cache {
 			iter += 1.0;
 			eta = 2.0 / Math.sqrt(iter);
 			
-			// get the sample
-			//sample = data.get(viol.violator);
+			// get the sample label
 			label = getLabel(viol.violator); 
 			
 			// set update variables
@@ -119,7 +114,7 @@ public class Cache {
 			// find worst violator
 			viol = findWorstViolator();
 			
-			// perform sv update
+			// perform SV update
 			viol.violator = performSVUpdate(viol.violator);
 			
 		} while(viol.yo < margin && iter < maxIter); 
@@ -128,7 +123,7 @@ public class Cache {
 	/**
 	 * Finds index and value of worst violator excluding support vectors
 	 * @param data
-	 * @return
+	 * @return Worst Violator
 	 */
 	public Violator findWorstViolator(){
 		double min_val = INT_MAX;
