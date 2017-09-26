@@ -83,6 +83,10 @@ public class OLLASolver extends AbstractClassifier {
 	 * Cache + Kernel Evaluator
 	 */
 	protected Cache cache;
+	/**
+	 * Samples' original positions
+	 */
+	protected int[] samples;
 	
 	/**
 	 * Sets options for model and initializes header for data.
@@ -123,17 +127,19 @@ public class OLLASolver extends AbstractClassifier {
 			data = proc.convertInstances(data);
 		}
 		
-		// set class index + data information
+		// set class index & data information
 		num_data = data.numInstances();
 		dim = data.numAttributes()-1;
 		data.setClassIndex(dim);
 		currentSize = num_data;
 		
-		// get class sizes & class indices
+		// get class sizes & initialize samples
+		this.samples = new int[this.num_data];
 		classSizes = new int[num_classes];
 		for(int sample = 0; sample < num_data; sample++){
 			int label = (int) data.get(sample).classValue();
 			classSizes[label]++;
+			samples[sample] = sample;
 		}
 		
 		// initialize pairwise models & assign size of each based on the class sizes
@@ -188,6 +194,7 @@ public class OLLASolver extends AbstractClassifier {
 			
 			// train binary OLLAWV model
 			cache.trainForCache(data);
+			
 			// update pairwise training model
 			state.models.get(i).setAlphas(cache.getAlphas());
 			state.models.get(i).setInd(cache.getInd());
@@ -195,6 +202,9 @@ public class OLLASolver extends AbstractClassifier {
 			state.models.get(i).setSvnumber(cache.svnumber-1);
 			state.models.get(i).setxSV(cache.xSV);
 			state.models.get(i).setySV(cache.ySV);
+			state.models.get(i).setSamples(cache.samples);
+			state.models.get(i).setX2(cache.x2);
+			
 			// save largest svnumber
 			if(state.models.get(i).getSvnumber() > svNum){
 				svNum = state.models.get(i).getSvnumber();
@@ -246,12 +256,31 @@ public class OLLASolver extends AbstractClassifier {
 		return train;
 	}
 	
-	/** 
-	 * Test on a batch of instances.
-	 */
+	/***
+     * Calculates the class membership for the given test
+     * instance (either 0 or 1). Result holds the negative class
+     * probability in space result[0], and positive in result[1].
+     *
+     * @param	Instance 	unknown instance to be classified
+     * @return 	double[] 	class probability, either 0 or 1
+     */
 	@Override
 	public double[] getVotesForInstance(Instance inst) {
-		// TODO Tester method for single instance
+		state.setVotes(new int[num_classes]);
+		state.setEvidence(new double[num_classes]);
+		// TODO: I need to store a unique set of x data for the support vectors 
+		//		in order to not recalculate the kernel for each model's SVs.
+		
+		for(int i = 0; i < state.models.size(); i++){
+			PairwiseTrainingResult model = state.models.get(i);
+			// calculate the kernel vector
+			double[] G = new double[model.getSvnumber()];
+			model.evalInnerKernel(inst, model.getxSV(), model.getX2(), G);
+			// TODO: get decision for model function
+			
+			
+		}
+		
 		return null;
 	}
 	
@@ -271,6 +300,7 @@ public class OLLASolver extends AbstractClassifier {
 			buff.append("\tBias: "+model.getBias()+"\n");
 			buff.append("        Alphas: "+model.getAlphas().toString()+"\n");
 			buff.append("        Inds: "+model.getInd().toString()+"\n");
+			buff.append("        Samples: "+Arrays.toString(model.getSamples())+"\n");
 			buff.append("----------------------------------\n");
 		}
         return buff.toString();
