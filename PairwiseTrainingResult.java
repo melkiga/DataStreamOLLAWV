@@ -133,6 +133,14 @@ public class PairwiseTrainingResult {
 	public void setSamples(int[] samples) {
 		this.samples = Arrays.copyOf(samples, svnumber);
 	}
+	
+	public void setSample(int loc, int val){
+		this.samples[loc] = val;
+	}
+	
+	public int getSample(int loc){
+		return this.samples[loc];
+	}
 
 	public List<Double> getX2() {
 		return x2;

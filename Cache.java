@@ -30,12 +30,13 @@ public class Cache {
 	int currentSize;
 	int svnumber;
 	double[] output;
+	
+	int[] forwardOrder;
+	int[] backwardOrder;
 	/**
 	 * Kernel parameters
 	 */
 	SVMParameters params;
-	List<double[]> xSV;
-	List<Double> ySV;
 	double bias;
 	double yyNeg;
 	/**
@@ -51,21 +52,25 @@ public class Cache {
 		svnumber = 1;
 		eval = new KernelEvaluator(data, probSize, par.getGamma());
 		
-		initialize(data);
+		initialize();
 	}
 	
 	/**
 	 * Initialize (fill) the cache + kernel evaluator variables
 	 */
-	protected void initialize(Instances data){
+	protected void initialize(){
 		// cache variables
 		setAlphas(new ArrayList<Double>());
 		output = new double[problemSize];
-		// evaluator variables
-		xSV = new ArrayList<double []>();
-		ySV = new ArrayList<Double>();
 		bias = 0.0;
 		yyNeg = -1.0;
+		// forward and backward order
+		forwardOrder = new int[problemSize];
+		backwardOrder = new int[problemSize];
+		for(int i = 0; i < problemSize; i++){
+			forwardOrder[i] = i;
+			backwardOrder[i] = i;
+		}
 	}
 	
 	/**
@@ -110,7 +115,6 @@ public class Cache {
 			// update worst violator information
 			alphas.add(lambda);
 			bias = bias + LB;
-			ySV.add(label);
 			
 			// find worst violator
 			viol = findWorstViolator();
@@ -149,13 +153,26 @@ public class Cache {
 	 */
 	public int performSVUpdate(int v){
 		if(v >= svnumber){
-			eval.swap(v, svnumber); 
-			Numeric.arraySwap(v, svnumber, output); // output
+			this.swapSamples(v, svnumber);
 			
 			v = svnumber;
 			svnumber++;
 		}
 		return v;
+	}
+	
+	/**
+	 * Swaps samples + their attributes
+	 * @param u
+	 * @param v
+	 */
+	public void swapSamples(int u, int v){
+		eval.swap(u, v);
+		Numeric.arraySwap(u, v, output);
+		
+		forwardOrder[backwardOrder[u]] = v;
+		forwardOrder[backwardOrder[v]] = u;
+		Numeric.arraySwap(u, v, backwardOrder);
 	}
 	
 	/**
@@ -167,8 +184,6 @@ public class Cache {
 			output[i] = 0.0;
 		}
 		bias = 0.0;
-		xSV.clear();
-		ySV.clear();
 		svnumber = 1;
 	}
 	

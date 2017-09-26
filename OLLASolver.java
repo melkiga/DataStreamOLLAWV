@@ -8,6 +8,7 @@ package vcu.edu.datastreamlearning.ollawv;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
@@ -82,10 +83,6 @@ public class OLLASolver extends AbstractClassifier {
 	 * Cache + Kernel Evaluator
 	 */
 	protected Cache cache;
-	/**
-	 * Samples' original positions
-	 */
-	protected int[] samples;
 	
 	/**
 	 * Sets options for model and initializes header for data.
@@ -132,13 +129,11 @@ public class OLLASolver extends AbstractClassifier {
 		data.setClassIndex(dim);
 		currentSize = num_data;
 		
-		// get class sizes & initialize samples
-		this.samples = new int[this.num_data];
+		// get class sizes
 		classSizes = new int[num_classes];
 		for(int sample = 0; sample < num_data; sample++){
 			int label = (int) data.get(sample).classValue();
 			classSizes[label]++;
-			samples[sample] = sample;
 		}
 		
 		// initialize pairwise models & assign size of each based on the class sizes
@@ -159,6 +154,8 @@ public class OLLASolver extends AbstractClassifier {
 		
 		// for debugging
 		if(vOption.getValue() == 1){
+			log.printBarrier();
+			log.printInstances(data);
 			log.printBarrier();
 			log.println("intialize(Instances data)::");
 			log.printf("\tTotal number of data: %d\n", this.num_data);
@@ -198,23 +195,38 @@ public class OLLASolver extends AbstractClassifier {
 			state.models.get(i).setAlphas(cache.getAlphas());
 			state.models.get(i).setBias(cache.bias);
 			state.models.get(i).setSvnumber(cache.svnumber-1);
-			state.models.get(i).setxSV(cache.xSV);
-			state.models.get(i).setySV(cache.ySV);
-			state.models.get(i).setSamples(cache.eval.samples);
+			state.models.get(i).setSamples(cache.backwardOrder);
 			
 			// save largest svnumber
 			if(state.models.get(i).getSvnumber() > svNum){
 				svNum = state.models.get(i).getSvnumber();
 			}
 		}
+		
+		int freeOffset = 0;
+		int[] mapping = cache.forwardOrder;
+		for(Iterator<PairwiseTrainingResult> it = state.models.iterator(); it.hasNext();){
+			PairwiseTrainingResult model = it.next();
+			for(int j = 0; j < model.getSvnumber(); j++){
+				int realOffset = mapping[model.getSample(j)];
+				if(realOffset >= freeOffset){
+					cache.swapSamples(realOffset, freeOffset);
+					realOffset = freeOffset++;
+				}
+				model.setSample(j,realOffset);
+			}
+		}
+		
 		// set the sv number to be the highest of the models
-		state.setSvNumber(svNum);
+		state.setSvNumber(freeOffset);
 		currentSize = totalSize;
 		
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
 			log.println(this.toString());
+			log.printBarrier();
+			log.printInstances(data);
 			log.printBarrier();
 		}
 	}
@@ -243,8 +255,7 @@ public class OLLASolver extends AbstractClassifier {
 				test--;
 			}
 			if(train < test){
-				Numeric.arraySwap(train, test, samples); // samples
-				cache.eval.swap(train, test);
+				cache.swapSamples(train, test);
 				
 				train = train + 1;
 				test = test - 1;
@@ -297,6 +308,8 @@ public class OLLASolver extends AbstractClassifier {
 			buff.append("\tBias: "+model.getBias()+"\n");
 			buff.append("        Alphas: "+model.getAlphas().toString()+"\n");
 			buff.append("        Samples: "+Arrays.toString(model.getSamples())+"\n");
+			//buff.append("        ForwardOrder: "+Arrays.toString(cache.forwardOrder)+"\n");
+			//buff.append("        BackwardOrder: "+Arrays.toString(cache.backwardOrder)+"\n");
 			buff.append("----------------------------------\n");
 		}
         return buff.toString();
