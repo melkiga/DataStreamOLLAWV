@@ -108,7 +108,7 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Initializes the solver + the pairwise models
 	 */
-	public void intialize(Instances data){
+	public void initialize(Instances data){
 		// Standardize data
 		if(standardizeOption.getValue() == 1){
 			Standardize proc = new Standardize();
@@ -151,7 +151,13 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
-		intialize(data);
+		
+		// This is for change detection. If 1st chunk, we need the training accuracy
+		if(cache == null){
+			initialize(data);
+		}
+		
+		initialize(data);
 		// set up the environment for each pairwise model
 		int totalSize = num_data;
 		for(int i = 0; i < state.models.size(); i++){
