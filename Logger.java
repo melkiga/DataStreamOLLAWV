@@ -8,15 +8,16 @@ import java.io.PrintWriter;
 import com.yahoo.labs.samoa.instances.Instances;
 
 public class Logger extends PrintWriter {
-	
+
 	protected PrintWriter logger;
-	
+	protected int counter;
 	/* Constructor to System.out output */
 	Logger(){
 		super(System.out,true);
 		logger = new PrintWriter(System.out, true);
+		counter = 0;
 	}
-	
+
 	/* Constructor to file output */
 	Logger(String filename) throws FileNotFoundException{
 		super(filename);
@@ -26,19 +27,39 @@ public class Logger extends PrintWriter {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/* Print barrier */
 	public void printBarrier(){
 		logger.printf("-----------------------------------------\n");
 	}
-	
+
+	public void printInstancesToFile(Instances chunk){
+		try {
+			PrintWriter t = new PrintWriter("data"+counter+".txt");
+			for(int i = 0; i < chunk.size(); i++){
+				double label = chunk.get(i).classValue();
+				t.print(label+" ");
+				for(int j = 0; j < chunk.numAttributes()-1; j++){
+					t.print(j+":"+chunk.get(i).value(j)+" ");
+				}
+				t.println();
+			}
+			counter++;
+			t.close();
+
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/* Prints chunk of (Instances) data */
 	public void printInstances(Instances chunk){
 		for(int i = 0; i < chunk.size(); i++){
 			double label = chunk.get(i).classValue();
 			logger.print(label+" ");
-			for(int j = 1; j < chunk.numAttributes(); j++){
-				logger.print(j+":"+chunk.get(i).value(j-1)+" ");
+			for(int j = 0; j < chunk.numAttributes()-1; j++){
+				logger.print(j+":"+chunk.get(i).value(j)+" ");
 			}
 			logger.println();
 		}
