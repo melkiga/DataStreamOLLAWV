@@ -10,20 +10,19 @@ public class OLLAWVTester {
 		Logger log = new Logger();
 		/* Set up data configuration. */
 		int numChunks = 5;
-		int chunkSize = 500;
+		int chunkSize = 20;
 		int dim = 2;
 		int seed = 1;
 		int numClasses = 2;
 		int sampleFreq = chunkSize;
 //		String[] localArgs = {"moa.tasks.EvaluateInterleavedChunksG -S ", 
 //				"-s \"generators.RandomRBFGenerator -r "+seed+" -i "+seed+" -c "+numClasses+" -a "+dim+"\"", 
-//				"-l \"vcu.edu.datastreamlearning.ollawv.OLLASolver -c 1.0 -g 5000.0 -v 1\"", 
+//				"-l \"vcu.edu.datastreamlearning.ollawv.OLLASolver -c 1.0 -g 4.5 -v 1\"", 
 //				"-i "+chunkSize*numChunks, 
 //				"-f "+sampleFreq, 
-//				"-c "+chunkSize,
-//				"-d results/output.csv"};
+//				"-c "+chunkSize};
 		
-		String[] localArgs = {"moa.tasks.EvaluateInterleavedChunksG ", 
+		String[] localArgs = {"moa.tasks.EvaluateInterleavedChunksG -S ", 
 				"-s \"generators.RandomRBFGenerator\"",
 				"-l \"vcu.edu.datastreamlearning.ollawv.OLLASolver -c 1.0 -g 2.0\"", 
 				"-i "+10000, 
