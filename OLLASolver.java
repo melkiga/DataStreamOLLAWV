@@ -151,19 +151,8 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
-		// check for using change detection
-		if(this.changeOption.getValue() == 1){
-			// This is for change detection. If 1st chunk, we need the training accuracy
-			if(cache == null){
-				initialize(data);
-				pairwiseTraining();
-				// calculate training accuracy
-				return;
-			}
-		} else{ // no change detection here
-			initialize(data);
-			pairwiseTraining();
-		}
+		initialize(data);
+		pairwiseTraining();
 	}
 
 	/**
