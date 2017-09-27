@@ -65,7 +65,6 @@ public class OLLASolver extends AbstractClassifier {
 	 * Data Header Variables
 	 */
 	protected int num_data;
-	protected int currentSize;
 	protected int dim;
 	protected int num_classes;
 	protected int[] classSizes;
@@ -127,7 +126,6 @@ public class OLLASolver extends AbstractClassifier {
 		num_data = data.numInstances();
 		dim = data.numAttributes()-1;
 		data.setClassIndex(dim);
-		currentSize = num_data;
 		
 		// get class sizes
 		classSizes = new int[num_classes];
@@ -162,7 +160,7 @@ public class OLLASolver extends AbstractClassifier {
 			log.println("INITIALIZATION NEW CHUNK");
 			log.println("intialize(Instances data)::");
 			log.printf("\tClass Sizes: %s\n", Arrays.toString(classSizes));
-			log.printf("\tCurrent Size: %d\n", currentSize);
+			log.printf("\tCurrent Size: %d\n", num_data);
 		}
 	}
 	
@@ -218,7 +216,6 @@ public class OLLASolver extends AbstractClassifier {
 		
 		// set the SV number to be the total number of SVs per model with no repeats
 		state.setSvNumber(freeOffset);
-		currentSize = totalSize;
 		
 		// for debugging
 		if(vOption.getValue() == 1){
@@ -231,7 +228,6 @@ public class OLLASolver extends AbstractClassifier {
 	 * Set current size of the pairwise model
 	 */
 	public void setCurrentSize(int size){
-		currentSize = size;
 		cache.setCurrentSize(size);
 	}
 	
