@@ -68,7 +68,6 @@ public class OLLASolver extends AbstractClassifier {
 	protected int dim;
 	protected int num_classes;
 	protected int[] classSizes;
-	protected int standardize;
 	protected PairwiseTrainingState state;
 	/**
 	 * Logger for debugging.
@@ -99,7 +98,6 @@ public class OLLASolver extends AbstractClassifier {
 		this.num_data = context.numInstances();
 		this.dim = context.numAttributes()-1;
 		this.num_classes = context.numClasses();
-		this.standardize = standardizeOption.getValue();
 		// Set the state to be null
 		this.state = new PairwiseTrainingState();
 		// Set cache to be null
@@ -112,7 +110,7 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	public void intialize(Instances data){
 		// Standardize data
-		if(standardize == 1){
+		if(standardizeOption.getValue() == 1){
 			Standardize proc = new Standardize();
 			data = proc.convertInstances(data);
 		}
@@ -352,7 +350,7 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	public String getModelContextString(){
 		StringBuffer buff = new StringBuffer();
-		buff.append("Data Standardization: "+standardize+"\n");
+		buff.append("Data Standardization: "+standardizeOption.getValue()+"\n");
 		buff.append("SVM Parameter C: "+params.getC()+"\n");
 		buff.append("RBF Parameter gamma: "+params.getGamma()+"\n");
 		buff.append("Using Bias: "+params.getBetta()+"\n");
@@ -361,7 +359,6 @@ public class OLLASolver extends AbstractClassifier {
 		buff.append("Using Change Detection: "+changeOption.getValue()+"\n");
 		buff.append("Dimensionality: "+this.dim+"\n");
 		buff.append("Number of classes: "+this.num_classes+"\n");
-		buff.append("Standardize data: "+this.standardize+"\n");
 		buff.append("Seed: "+this.randomSeed+"\n");
         return buff.toString();
 	}
