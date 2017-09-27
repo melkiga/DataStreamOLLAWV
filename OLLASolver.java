@@ -73,11 +73,11 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Logger for debugging.
 	 */
-	private static Logger log = new Logger();
+	protected static Logger log = new Logger();
 	/**
 	 * Holds SVM Hyper-parameters.
 	 */
-	private static SVMParameters params = new SVMParameters();
+	private static SVMParameters params;
 	/**
 	 * Cache + Kernel Evaluator
 	 */
@@ -90,6 +90,7 @@ public class OLLASolver extends AbstractClassifier {
 	@Override
 	public void setModelContext(InstancesHeader context){
 		// Set SVM parameters from command-line
+		params = new SVMParameters();
 		params.setC(cOption.getValue());
 		params.setGamma(gOption.getValue());
 		params.setEpochs(eOption.getValue());
@@ -104,12 +105,6 @@ public class OLLASolver extends AbstractClassifier {
 		// Set cache to be null
 		cache = null;
 		eval = null;
-		// for debugging
-		if(vOption.getValue() == 1){
-			log.printBarrier();
-			log.printf(this.getPurposeString());
-			log.printf(this.getModelContextString());
-		}
 	}
 	
 	/**
@@ -139,29 +134,18 @@ public class OLLASolver extends AbstractClassifier {
 		for(int i = 0; i < num_classes; i++){
 			for(int j = (i+1); j < num_classes; j++){
 				int size = classSizes[i] + classSizes[j];
-				Tuple<Integer,Integer> trainPair = new Tuple<Integer,Integer>(i,j);
-				state.models.add(new PairwiseTrainingResult(params,size,trainPair));
+				state.models.add(new PairwiseTrainingResult(params,size, new Tuple<Integer,Integer>(i,j)));
 			}
 		}
 		
 		// set the last label number as max label
 		state.setLabelNumber(num_classes);
-		state.setSvNumber(0);
 		
 		// build the kernel evaluator
 		eval = new KernelEvaluator(data, num_data, params.getGamma());
 		
 		// build the cache
 		cache = new Cache(num_data,params,eval);
-		
-		// for debugging
-		if(vOption.getValue() == 1){
-			log.printBarrier();
-			log.println("INITIALIZATION NEW CHUNK");
-			log.println("intialize(Instances data)::");
-			log.printf("\tClass Sizes: %s\n", Arrays.toString(classSizes));
-			log.printf("\tCurrent Size: %d\n", num_data);
-		}
 	}
 	
 	/**
@@ -169,22 +153,13 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
-		// if nothing has been initialized (chunk 1)
-		//if(cache == null){
 		intialize(data);
-		//}
-		
-		// for debugging TODO: remove
-		if(vOption.getValue() == 1){
-			log.printInstancesToFile(data);
-		}
-		
 		// set up the environment for each pairwise model
 		int totalSize = num_data;
 		for(int i = 0; i < state.models.size(); i++){
 			// reorder samples based on training pair
 			Tuple<Integer,Integer> trainPair = state.models.get(i).trainingLabels;
-			int size = reorderSamples(trainPair, totalSize); // sort samples based on the current label pair
+			int size = reorderSamples(trainPair, totalSize);
 			setCurrentSize(size);
 			cache.setLabel(trainPair.second);
 			cache.reset();
@@ -213,7 +188,6 @@ public class OLLASolver extends AbstractClassifier {
 				model.setSample(j,realOffset);
 			}
 		}
-		
 		// set the SV number to be the total number of SVs per model with no repeats
 		state.setSvNumber(freeOffset);
 		
@@ -399,14 +373,6 @@ public class OLLASolver extends AbstractClassifier {
 	public void getModelDescription(StringBuilder out, int indent) {
 		StringUtils.appendIndented(out, indent, toString());
         StringUtils.appendNewline(out);
-	}
-
-	public static Logger getLog() {
-		return log;
-	}
-
-	public static void setLog(Logger log) {
-		OLLASolver.log = log;
 	}
 	
 	@Override
