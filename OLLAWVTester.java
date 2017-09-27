@@ -9,26 +9,27 @@ public class OLLAWVTester {
 		
 		Logger log = new Logger();
 		/* Set up data configuration. */
-		int numChunks = 2;
-		int chunkSize = 50;
+		int numChunks = 5;
+		int chunkSize = 500;
 		int dim = 2;
 		int seed = 1;
-		int numClasses = 3;
-		String[] localArgs = {"moa.tasks.EvaluateInterleavedChunks -S ", 
-				"-s \"generators.RandomRBFGenerator -n 3 -r "+seed+" -i "+seed+" -c "+numClasses+" -a "+dim+"\"", 
-				"-l \"vcu.edu.datastreamlearning.ollawv.OLLASolver -v 1\"", 
-				"-i "+chunkSize*numChunks, 
-				"-f "+dim, 
-				"-c "+chunkSize};
+		int numClasses = 2;
+		int sampleFreq = chunkSize;
+//		String[] localArgs = {"moa.tasks.EvaluateInterleavedChunksG -S ", 
+//				"-s \"generators.RandomRBFGenerator -r "+seed+" -i "+seed+" -c "+numClasses+" -a "+dim+"\"", 
+//				"-l \"vcu.edu.datastreamlearning.ollawv.OLLASolver -c 1.0 -g 5000.0 -v 1\"", 
+//				"-i "+chunkSize*numChunks, 
+//				"-f "+sampleFreq, 
+//				"-c "+chunkSize,
+//				"-d results/output.csv"};
 		
-		/* Print configuration. */
-		log.printBarrier();
-		log.printf("Number of chunks: %d\n", numChunks);
-		log.printf("Number of instances: %d\n", chunkSize);
-		log.printf("Dimensionality: %d\n", dim);
-		log.printf("Number of classes: %d\n", numClasses);
-		log.printf("Seed: %d\n", seed);
-		log.printBarrier();
+		String[] localArgs = {"moa.tasks.EvaluateInterleavedChunksG ", 
+				"-s \"generators.RandomRBFGenerator\"",
+				"-l \"vcu.edu.datastreamlearning.ollawv.OLLASolver -c 1.0 -g 2.0\"", 
+				"-i "+10000, 
+				"-f "+100, 
+				"-c "+100,
+				"-d results/output.csv"};
 		
 		/* Calls Evaluate Interleaved Chunks */
 		DoTask.main(localArgs);
