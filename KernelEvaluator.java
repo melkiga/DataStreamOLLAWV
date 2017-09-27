@@ -38,9 +38,12 @@ public class KernelEvaluator {
 	 * @param G
 	 */
 	public void evalKernel(Instance inst, int to, double[] G){
-		evalDist(inst, to, G);
-		
+		//evalDist(inst, to, G);
+		int dim = inst.numAttributes()-1;
+		double x2_i = Numeric.norm2(inst);
 		for(int i = 0; i < to; i++){
+			double x2_id = x2[i];
+			G[i] = x2_id + x2_i -2*Numeric.dot(data.get(i).toDoubleArray(), inst.toDoubleArray(), dim);
 			G[i] = Math.exp(G[i]*gamma);
 		}
 	}
@@ -52,9 +55,12 @@ public class KernelEvaluator {
 	 * @param G
 	 */
 	public void evalKernel(int indwviol, int to, double[] G){
-		evalDist(indwviol, to, G);
-		
+		//evalDist(indwviol, to, G);
+		int dim = data.get(0).numAttributes()-1;
 		for(int i = 0; i < to; i++){
+			double x2_id = x2[i];
+			double x2_i = x2[indwviol];
+			G[i] = x2_id + x2_i -2*Numeric.dot(data.get(i).toDoubleArray(), data.get(indwviol).toDoubleArray(), dim);
 			G[i] = Math.exp(G[i]*gamma);
 		}
 	}
