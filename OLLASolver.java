@@ -186,7 +186,7 @@ public class OLLASolver extends AbstractClassifier {
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
-			log.printInstances(data);
+			log.printInstancesToFile(data);
 			log.printBarrier();
 		}
 		
@@ -292,38 +292,40 @@ public class OLLASolver extends AbstractClassifier {
 		// initialize votes and evidence
 		state.setVotes(new int[num_classes]);
 		state.setEvidence(new double[num_classes]);
-		// calculate the kernel vector for all SVs
-		int svnumber = state.getSvNumber();
-		double[] G = new double[svnumber];
-		eval.evalKernel(inst, svnumber, G);
-		// for each model, calculate output and fill votes and evidence
-		for(Iterator<PairwiseTrainingResult> it = state.models.iterator(); it.hasNext();){
-			PairwiseTrainingResult model = it.next();
-			double dec = getDecisionForModel(model,G);
-			int label = dec > 0 ? model.trainingLabels.first : model.trainingLabels.second;
-			state.votes[label]++;
-			state.evidence[model.trainingLabels.first] += dec;
-			state.evidence[model.trainingLabels.second] += dec;
-		}
-		// get the winning class (includes tied classes)
-		int maxLabelId = 0;
-		int maxVotes = 0;
-		double maxEvidence = 0;
-		for(int i = 0; i < state.getLabelNumber(); i++){
-			if(state.votes[i] > maxVotes
-				|| (state.votes[i] == maxVotes && state.evidence[i] > maxEvidence)){
-				maxLabelId = i;
-				maxVotes = state.votes[i];
-				maxEvidence = state.evidence[i];
+		
+		if(cache != null){
+			// calculate the kernel vector for all SVs
+			int svnumber = state.getSvNumber();
+			double[] G = new double[svnumber];
+			eval.evalKernel(inst, svnumber, G); // TODO: pass mapping values
+			// for each model, calculate output and fill votes and evidence
+			for(Iterator<PairwiseTrainingResult> it = state.models.iterator(); it.hasNext();){
+				PairwiseTrainingResult model = it.next();
+				double dec = getDecisionForModel(model,G);
+				int label = dec > 0 ? model.trainingLabels.second : model.trainingLabels.first;
+				state.votes[label]++;
+				state.evidence[model.trainingLabels.first] += dec;
+				state.evidence[model.trainingLabels.second] += dec;
 			}
+			// get the winning class (includes tied classes)
+			int maxLabelId = 0;
+			int maxVotes = 0;
+			double maxEvidence = 0;
+			for(int i = 0; i < state.getLabelNumber(); i++){
+				if(state.votes[i] > maxVotes
+					|| (state.votes[i] == maxVotes && state.evidence[i] > maxEvidence)){
+					maxLabelId = i;
+					maxVotes = state.votes[i];
+					maxEvidence = state.evidence[i];
+				}
+			}
+			//log.println(maxEvidence);
+			result[maxLabelId]++;
+			
+//			if(maxLabelId == inst.classValue()){
+//				// correct!
+//			}
 		}
-		
-		result[maxLabelId]++;
-		
-		if(maxLabelId == inst.classValue()){
-			// correct!
-		}
-		
 		return result;
 	}
 	
