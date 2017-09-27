@@ -37,6 +37,7 @@ public class Cache {
 	 * Kernel evaluator
 	 */
 	KernelEvaluator eval;
+	double[] vals = {-1.0, 1.0};
 	
 	public Cache(int probSize, SVMParameters par, KernelEvaluator eval){
 		// cache variables
@@ -78,13 +79,12 @@ public class Cache {
 		double lambda = 0.0;
 		double LB = 0.0;
 		double betta = params.getBetta(); 
+		double label;
 		
 		// loop variables
 		int iter = 0;
 		Violator viol = new Violator(iter,0.0);
 		double[] G = new double[currentSize];
-		//Instance sample;
-		double label;
 		
 		do {
 			iter += 1.0;
@@ -101,9 +101,7 @@ public class Cache {
 			eval.evalKernel(viol.violator,currentSize,G);
 			
 			// calculate the output vector (output = output + G*lambda + LB)
-			Numeric.arrayMulConst(lambda,currentSize,G); 
-			Numeric.arrayAdd(G,currentSize,output);
-			Numeric.arrayAddConst(LB,currentSize,output);
+			updateOutput(lambda, G, LB);
 			
 			// update worst violator information
 			alphas.add(lambda);
@@ -145,13 +143,23 @@ public class Cache {
 	 * @param v
 	 */
 	public int performSVUpdate(int v){
-		if(v >= svnumber){
-			this.swapSamples(v, svnumber);
-			
-			v = svnumber;
-			svnumber++;
-		}
+		this.swapSamples(v, svnumber);
+		
+		v = svnumber;
+		svnumber++;
 		return v;
+	}
+	
+	/**
+	 * (output = output + G*lambda + LB)
+	 * @param lambda
+	 * @param G
+	 * @param LB
+	 */
+	public void updateOutput(double lambda, double[] G, double LB){
+		for(int i = 0; i < currentSize; i++){
+			output[i] = output[i] + G[i]*lambda + LB;
+		}
 	}
 	
 	/**
@@ -184,7 +192,6 @@ public class Cache {
 	 * Gets the label of sample v
 	 */
 	public double getLabel(int u){
-		double[] vals = {-1.0, 1.0};
 		double lab = eval.getLabel(u);
 		int index = (lab == yyNeg) ? 1 : 0;
 		return vals[index];
