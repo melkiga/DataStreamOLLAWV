@@ -97,7 +97,7 @@ public class OLLASolver extends AbstractClassifier {
 		params.setTol(tOption.getValue());
 		// Get data header
 		this.num_data = context.numInstances();
-		this.dim = context.numAttributes();
+		this.dim = context.numAttributes()-1;
 		this.num_classes = context.numClasses();
 		this.standardize = standardizeOption.getValue();
 		// Set the state to be null
@@ -109,9 +109,7 @@ public class OLLASolver extends AbstractClassifier {
 		if(vOption.getValue() == 1){
 			log.printBarrier();
 			log.printf(this.getPurposeString());
-			log.printBarrier();
 			log.printf(this.getModelContextString());
-			log.printBarrier();
 		}
 	}
 	
@@ -150,6 +148,7 @@ public class OLLASolver extends AbstractClassifier {
 		
 		// set the last label number as max label
 		state.setLabelNumber(num_classes);
+		state.setSvNumber(0);
 		
 		// build the kernel evaluator
 		eval = new KernelEvaluator(data, num_data, params.getGamma());
@@ -162,14 +161,8 @@ public class OLLASolver extends AbstractClassifier {
 			log.printBarrier();
 			log.println("INITIALIZATION NEW CHUNK");
 			log.println("intialize(Instances data)::");
-			log.printf("\tTotal number of data: %d\n", this.num_data);
-			log.printf("\tDimensionality: %d\n", this.dim);
-			log.printf("\tNumber of classes: %d\n", this.num_classes);
-			log.printf("\tStandardize data: %d\n", this.standardize);
-			log.printf("\tSeed: %d\n", this.randomSeed);
 			log.printf("\tClass Sizes: %s\n", Arrays.toString(classSizes));
 			log.printf("\tCurrent Size: %d\n", currentSize);
-			log.printBarrier();
 		}
 	}
 	
@@ -183,15 +176,12 @@ public class OLLASolver extends AbstractClassifier {
 		intialize(data);
 		//}
 		
-		// for debugging
+		// for debugging TODO: remove
 		if(vOption.getValue() == 1){
-			log.printBarrier();
 			log.printInstancesToFile(data);
-			log.printBarrier();
 		}
 		
 		// set up the environment for each pairwise model
-		int svNum = 0;
 		int totalSize = num_data;
 		for(int i = 0; i < state.models.size(); i++){
 			// reorder samples based on training pair
@@ -209,12 +199,8 @@ public class OLLASolver extends AbstractClassifier {
 			state.models.get(i).setBias(cache.bias);
 			state.models.get(i).setSvnumber(cache.svnumber-1);
 			state.models.get(i).setSamples(cache.backwardOrder);
-			
-			// save largest svnumber
-			if(state.models.get(i).getSvnumber() > svNum){
-				svNum = state.models.get(i).getSvnumber();
-			}
 		}
+		
 		// sort the data so that all the support vectors are on top
 		int freeOffset = 0;
 		int[] mapping = cache.forwardOrder;
@@ -238,7 +224,6 @@ public class OLLASolver extends AbstractClassifier {
 		if(vOption.getValue() == 1){
 			log.printBarrier();
 			log.println(this.toString());
-			log.printBarrier();
 		}
 	}
 	
@@ -297,7 +282,7 @@ public class OLLASolver extends AbstractClassifier {
 			// calculate the kernel vector for all SVs
 			int svnumber = state.getSvNumber();
 			double[] G = new double[svnumber];
-			eval.evalKernel(inst, svnumber, G); // TODO: pass mapping values
+			eval.evalKernel(inst, svnumber, G);
 			// for each model, calculate output and fill votes and evidence
 			for(Iterator<PairwiseTrainingResult> it = state.models.iterator(); it.hasNext();){
 				PairwiseTrainingResult model = it.next();
@@ -404,6 +389,10 @@ public class OLLASolver extends AbstractClassifier {
 		buff.append("Margin Tol: "+params.getTol()+"\n");
 		buff.append("Number of Epochs: "+params.getEpochs()+"\n");
 		buff.append("Using Change Detection: "+changeOption.getValue()+"\n");
+		buff.append("Dimensionality: "+this.dim+"\n");
+		buff.append("Number of classes: "+this.num_classes+"\n");
+		buff.append("Standardize data: "+this.standardize+"\n");
+		buff.append("Seed: "+this.randomSeed+"\n");
         return buff.toString();
 	}
 	
