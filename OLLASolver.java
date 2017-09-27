@@ -57,9 +57,9 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	public IntOption standardizeOption = new IntOption("standardize",'p',"Standardize data, 0 mean 1 stdv",0);
 	/**
-	 * Seed value, default = 1
+	 * To use hyper-parameter selection in first chunk
 	 */
-	public IntOption seedOption = new IntOption("seed",'r',"Seed value.",1);
+	public IntOption useHyperParameterOption = new IntOption("hyperparameter",'s',"Use hyper-parameter selection in first chunk.",1);
 
 	/**
 	 * Data Header Variables
@@ -151,8 +151,77 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
+		// use hyper-parameter selection on first chunk
+		if(cache == null && useHyperParameterOption.getValue() == 1){
+			tuneHyperParameters(data);
+		}
 		initialize(data);
 		pairwiseTraining();
+	}
+
+	/**
+	 * Hyperparameter tuning for the first chunk of data
+	 * @param data
+	 */
+	public void tuneHyperParameters(Instances data){
+		int folds = 10;
+		double[] gamma = {0.001, 0.01, 0.1, 0.5, 1.0, 2.0, 4.0, 16.0};
+		double[] tol = {0.01, 0.1, 1.0};
+		// accuracy of fold k
+		double accuracy = 0.0;
+		// best accuracy
+		double acc = 0.0;
+		// indexes of best hyper-parameter for each fold
+		int ii = 0; int jj = 0;
+		// cross validation for parameter selection
+		for(int i = 0; i < tol.length; i++){
+			params.setTol(tol[i]);
+			for(int j = 0; j < gamma.length; j++){
+				params.setGamma(gamma[j]);
+				for(int k = 0; k < folds; k++){
+					// create train and test set
+					Instances train = data.trainCV(folds, k);
+					Instances test = data.testCV(folds, k);
+					// initialize and train
+					initialize(train);
+					pairwiseTraining();
+					// test model
+					double[] result = new double[test.numClasses()];
+					int correct = 0;
+					for(int t = 0; t < test.numInstances(); t++){
+						Instance test_inst = test.get(t);
+						result = getVotesForInstance(test_inst);
+						int true_output = (int) test_inst.classValue();
+						if(result[true_output] == 1.0){
+							correct++;
+						}
+					}
+					// accumulated accuracy
+					accuracy += (double) 100.0*((correct)/ (double) test.numInstances());
+				}
+				// get mean fold accuracy
+				accuracy = accuracy/(double)folds;
+				log.print(accuracy+" ");
+				// find indexes of best accuracy
+				if(accuracy > acc){
+					acc = accuracy;
+					ii = i; jj = j;
+				} else if(accuracy == acc && (ii >= i && jj <= j)){
+					acc = accuracy;
+					ii = i; jj = j;
+				}
+				// reset accuracy for next parameters
+				accuracy = 0.0;
+			}
+			log.println();
+		}
+		// set winning parameters
+		params.setGamma(gamma[jj]);
+		params.setTol(tol[ii]);
+		//if(vOption.getValue() == 1){
+			log.printBarrier();
+			log.printf("Best Gamma: %2.4f\nBest Tol: %2.4f\n",gamma[jj],tol[ii]);
+		//}
 	}
 
 	/**
