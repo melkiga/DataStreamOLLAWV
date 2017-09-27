@@ -23,7 +23,7 @@ import moa.core.StringUtils;
 
 public class OLLASolver extends AbstractClassifier {
 	private static final long serialVersionUID = 7225375378266360793L;
-	
+
 	/**
 	 * SVM Penalty Parameter C, command line, default value = 1.0
 	 */
@@ -60,7 +60,7 @@ public class OLLASolver extends AbstractClassifier {
 	 * Seed value, default = 1
 	 */
 	public IntOption seedOption = new IntOption("seed",'r',"Seed value.",1);
-	
+
 	/**
 	 * Data Header Variables
 	 */
@@ -82,7 +82,7 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	protected Cache cache;
 	protected KernelEvaluator eval;
-	
+
 	/**
 	 * Sets options for model and initializes header for data.
 	 */
@@ -104,7 +104,7 @@ public class OLLASolver extends AbstractClassifier {
 		cache = null;
 		eval = null;
 	}
-	
+
 	/**
 	 * Initializes the solver + the pairwise models
 	 */
@@ -114,19 +114,19 @@ public class OLLASolver extends AbstractClassifier {
 			Standardize proc = new Standardize();
 			data = proc.convertInstances(data);
 		}
-		
+
 		// set class index & data information
 		num_data = data.numInstances();
 		dim = data.numAttributes()-1;
 		data.setClassIndex(dim);
-		
+
 		// get class sizes
 		classSizes = new int[num_classes];
 		for(int sample = 0; sample < num_data; sample++){
 			int label = (int) data.get(sample).classValue();
 			classSizes[label]++;
 		}
-		
+
 		// initialize pairwise models & assign size of each based on the class sizes
 		state.models = new ArrayList<PairwiseTrainingResult>();
 		for(int i = 0; i < num_classes; i++){
@@ -135,29 +135,41 @@ public class OLLASolver extends AbstractClassifier {
 				state.models.add(new PairwiseTrainingResult(params,size, new Tuple<Integer,Integer>(i,j)));
 			}
 		}
-		
+
 		// set the last label number as max label
 		state.setLabelNumber(num_classes);
-		
+
 		// build the kernel evaluator
 		eval = new KernelEvaluator(data, num_data, params.getGamma());
-		
+
 		// build the cache
 		cache = new Cache(num_data,params,eval);
 	}
-	
+
 	/**
-	 * Train on a batch of instances.
+	 * Set up training environment for batch of instances
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
-		
-		// This is for change detection. If 1st chunk, we need the training accuracy
-		if(cache == null){
+		// check for using change detection
+		if(this.changeOption.getValue() == 1){
+			// This is for change detection. If 1st chunk, we need the training accuracy
+			if(cache == null){
+				initialize(data);
+				pairwiseTraining();
+				// calculate training accuracy
+				return;
+			}
+		} else{ // no change detection here
 			initialize(data);
+			pairwiseTraining();
 		}
-		
-		initialize(data);
+	}
+
+	/**
+	 * Perform pairwise training
+	 */
+	public void pairwiseTraining(){
 		// set up the environment for each pairwise model
 		int totalSize = num_data;
 		for(int i = 0; i < state.models.size(); i++){
@@ -167,17 +179,17 @@ public class OLLASolver extends AbstractClassifier {
 			setCurrentSize(size);
 			cache.setLabel(trainPair.second);
 			cache.reset();
-			
+
 			// train binary OLLAWV model on current training pair
 			cache.trainForCache();
-			
+
 			// update pairwise training model
 			state.models.get(i).setAlphas(cache.getAlphas());
 			state.models.get(i).setBias(cache.bias);
 			state.models.get(i).setSvnumber(cache.svnumber-1);
 			state.models.get(i).setSamples(cache.backwardOrder);
 		}
-		
+
 		// sort the data so that all the support vectors are on top
 		int freeOffset = 0;
 		int[] mapping = cache.forwardOrder;
@@ -194,21 +206,21 @@ public class OLLASolver extends AbstractClassifier {
 		}
 		// set the SV number to be the total number of SVs per model with no repeats
 		state.setSvNumber(freeOffset);
-		
+
 		// for debugging
 		if(vOption.getValue() == 1){
 			log.printBarrier();
 			log.println(this.toString());
 		}
 	}
-	
+
 	/**
 	 * Set current size of the pairwise model
 	 */
 	public void setCurrentSize(int size){
 		cache.setCurrentSize(size);
 	}
-	
+
 	/**
 	 * Orders samples based on the current label training pair
 	 * @param trainPair
@@ -229,29 +241,29 @@ public class OLLASolver extends AbstractClassifier {
 			}
 			if(train < test){
 				cache.swapSamples(train, test);
-				
+
 				train = train + 1;
 				test = test - 1;
 			}
 		}
 		return train;
 	}
-	
+
 	/***
-     * Calculates the class membership for the given test
-     * instance (either 0 or 1). Result holds the negative class
-     * probability in space result[0], and positive in result[1].
-     *
-     * @param	Instance 	unknown instance to be classified
-     * @return 	double[] 	class probability, either 0 or 1
-     */
+	 * Calculates the class membership for the given test
+	 * instance (either 0 or 1). Result holds the negative class
+	 * probability in space result[0], and positive in result[1].
+	 *
+	 * @param	Instance 	unknown instance to be classified
+	 * @return 	double[] 	class probability, either 0 or 1
+	 */
 	@Override
 	public double[] getVotesForInstance(Instance inst) {
 		double[] result = new double[num_classes];
 		// initialize votes and evidence
 		state.setVotes(new int[num_classes]);
 		state.setEvidence(new double[num_classes]);
-		
+
 		if(cache != null){
 			// calculate the kernel vector for all SVs
 			int svnumber = state.getSvNumber();
@@ -272,7 +284,7 @@ public class OLLASolver extends AbstractClassifier {
 			double maxEvidence = 0;
 			for(int i = 0; i < state.getLabelNumber(); i++){
 				if(state.votes[i] > maxVotes
-					|| (state.votes[i] == maxVotes && state.evidence[i] > maxEvidence)){
+						|| (state.votes[i] == maxVotes && state.evidence[i] > maxEvidence)){
 					maxLabelId = i;
 					maxVotes = state.votes[i];
 					maxEvidence = state.evidence[i];
@@ -280,14 +292,14 @@ public class OLLASolver extends AbstractClassifier {
 			}
 			//log.println(maxEvidence);
 			result[maxLabelId]++;
-			
-//			if(maxLabelId == inst.classValue()){
-//				// correct!
-//			}
+
+			//			if(maxLabelId == inst.classValue()){
+			//				// correct!
+			//			}
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Get model output
 	 * @param model
@@ -301,7 +313,7 @@ public class OLLASolver extends AbstractClassifier {
 		}
 		return dec;
 	}
-	
+
 	/**
 	 * Returns a string of the model
 	 * @return
@@ -310,7 +322,7 @@ public class OLLASolver extends AbstractClassifier {
 		StringBuffer buff = new StringBuffer();
 		buff.append("Total number of Pairwise Models: "+state.models.size()+"\n");
 		buff.append("Max SV Number: "+state.getSvNumber()+"\n");
-		
+
 		for(int i = 0; i < state.models.size(); i++){
 			PairwiseTrainingResult model = state.models.get(i);
 			buff.append("\tPair "+i+":("+model.trainingLabels.first+","+model.trainingLabels.second+")\n");
@@ -320,7 +332,7 @@ public class OLLASolver extends AbstractClassifier {
 			buff.append("        Samples: "+Arrays.toString(model.getSamples())+"\n");
 			buff.append("----------------------------------\n");
 		}
-        return buff.toString();
+		return buff.toString();
 	}
 
 	@Override
@@ -342,15 +354,15 @@ public class OLLASolver extends AbstractClassifier {
 	protected Measurement[] getModelMeasurementsImpl() {
 		return null;
 	}
-	
+
 	/**
 	 *  Returns the name of the solver. 
 	 */
 	@Override
-    public String getPurposeString() {
-        return "OnLine Learning Algorithm using Worst Violator (OLLAWV), VK and GM (2017).\n";
-    }
-	
+	public String getPurposeString() {
+		return "OnLine Learning Algorithm using Worst Violator (OLLAWV), VK and GM (2017).\n";
+	}
+
 	/**
 	 * Prints the model context.
 	 */
@@ -366,18 +378,18 @@ public class OLLASolver extends AbstractClassifier {
 		buff.append("Dimensionality: "+this.dim+"\n");
 		buff.append("Number of classes: "+this.num_classes+"\n");
 		buff.append("Seed: "+this.randomSeed+"\n");
-        return buff.toString();
+		return buff.toString();
 	}
-	
+
 	/**
 	 *  Prints parameter out to string builder (auto-generated inherited). 
 	 */
 	@Override
 	public void getModelDescription(StringBuilder out, int indent) {
 		StringUtils.appendIndented(out, indent, toString());
-        StringUtils.appendNewline(out);
+		StringUtils.appendNewline(out);
 	}
-	
+
 	@Override
 	public boolean isRandomizable() {
 		return false;
