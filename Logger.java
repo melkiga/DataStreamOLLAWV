@@ -1,5 +1,6 @@
 package vcu.edu.datastreamlearning.ollawv;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,9 +21,13 @@ public class Logger extends PrintWriter {
 
 	/* Constructor to file output */
 	Logger(String filename) throws FileNotFoundException{
-		super(filename);
+		super(new File(filename));
+		File log = new File(filename);
 		try {
-			logger = new PrintWriter(new FileWriter(filename), true);
+			if(!log.exists()){
+				log.createNewFile();
+			}
+			logger = new PrintWriter(new FileWriter(log));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
