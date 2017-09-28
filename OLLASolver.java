@@ -109,12 +109,6 @@ public class OLLASolver extends AbstractClassifier {
 	 * Initializes the solver + the pairwise models
 	 */
 	public void initialize(Instances data){
-		// Standardize data
-		if(standardizeOption.getValue() == 1){
-			Standardize proc = new Standardize();
-			data = proc.convertInstances(data);
-		}
-
 		// set class index & data information
 		num_data = data.numInstances();
 		dim = data.numAttributes()-1;
@@ -151,9 +145,17 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public void trainOnInstances(Instances data) {
-		// use hyper-parameter selection on first chunk
-		if(cache == null && useHyperParameterOption.getValue() == 1){
-			tuneHyperParameters(data);
+		// Standardize data
+		if(standardizeOption.getValue() == 1){
+			Standardize proc = new Standardize();
+			data = proc.convertInstances(data);
+		}
+		// use hyper-parameter selection on first chunk		
+		if(cache == null) {
+			if(useHyperParameterOption.getValue() == 1){
+				tuneHyperParameters(data);
+			}
+			log.printInstancesToFile(data);
 			if(vOption.getValue() == 1){
 				log.printBarrier();
 				log.printf(getPurposeString());
@@ -161,6 +163,7 @@ public class OLLASolver extends AbstractClassifier {
 				log.printBarrier();
 			}
 		}
+		
 		initialize(data);
 		pairwiseTraining();
 	}
