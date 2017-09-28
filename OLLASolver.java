@@ -55,11 +55,11 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Option to standardize data, default = 1
 	 */
-	public IntOption standardizeOption = new IntOption("standardize",'p',"Standardize data, 0 mean 1 stdv",0);
+	public IntOption standardizeOption = new IntOption("standardize",'s',"Standardize data, 0 mean 1 stdv",0);
 	/**
 	 * To use hyper-parameter selection in first chunk
 	 */
-	public IntOption useHyperParameterOption = new IntOption("hyperparameter",'s',"Use hyper-parameter selection in first chunk.",1);
+	public IntOption useHyperParameterOption = new IntOption("hyperparameter",'p',"Use hyper-parameter selection in first chunk.",1);
 
 	/**
 	 * Data Header Variables
