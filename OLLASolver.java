@@ -154,6 +154,12 @@ public class OLLASolver extends AbstractClassifier {
 		// use hyper-parameter selection on first chunk
 		if(cache == null && useHyperParameterOption.getValue() == 1){
 			tuneHyperParameters(data);
+			if(vOption.getValue() == 1){
+				log.printBarrier();
+				log.printf(getPurposeString());
+				log.printf(getModelContextString());
+				log.printBarrier();
+			}
 		}
 		initialize(data);
 		pairwiseTraining();
@@ -258,12 +264,6 @@ public class OLLASolver extends AbstractClassifier {
 		}
 		// set the SV number to be the total number of SVs per model with no repeats
 		state.setSvNumber(freeOffset);
-
-		// for debugging
-		if(vOption.getValue() == 1){
-			log.printBarrier();
-			log.println(this.toString());
-		}
 	}
 
 	/**
@@ -342,12 +342,7 @@ public class OLLASolver extends AbstractClassifier {
 					maxEvidence = state.evidence[i];
 				}
 			}
-			//log.println(maxEvidence);
 			result[maxLabelId]++;
-
-			//			if(maxLabelId == inst.classValue()){
-			//				// correct!
-			//			}
 		}
 		return result;
 	}
