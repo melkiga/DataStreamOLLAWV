@@ -201,7 +201,6 @@ public class OLLASolver extends AbstractClassifier {
 				}
 				// get mean fold accuracy
 				accuracy = accuracy/(double)folds;
-				log.print(accuracy+" ");
 				// find indexes of best accuracy
 				if(accuracy > acc){
 					acc = accuracy;
@@ -213,15 +212,10 @@ public class OLLASolver extends AbstractClassifier {
 				// reset accuracy for next parameters
 				accuracy = 0.0;
 			}
-			log.println();
 		}
 		// set winning parameters
 		params.setGamma(gamma[jj]);
 		params.setTol(tol[ii]);
-		//if(vOption.getValue() == 1){
-			log.printBarrier();
-			log.printf("Best Gamma: %2.4f\nBest Tol: %2.4f\n",gamma[jj],tol[ii]);
-		//}
 	}
 
 	/**
