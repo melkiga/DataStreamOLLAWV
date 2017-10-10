@@ -69,6 +69,7 @@ public class OLLASolver extends AbstractClassifier {
 	protected int num_classes;
 	protected int[] classSizes;
 	protected PairwiseTrainingState state;
+	protected Standardize proc;
 	/**
 	 * Logger for debugging.
 	 */
@@ -147,7 +148,7 @@ public class OLLASolver extends AbstractClassifier {
 	public void trainOnInstances(Instances data) {
 		// Standardize data
 		if(standardizeOption.getValue() == 1){
-			Standardize proc = new Standardize();
+			proc = new Standardize();
 			data = proc.convertInstances(data);
 		}
 		// use hyper-parameter selection on first chunk		
@@ -155,7 +156,7 @@ public class OLLASolver extends AbstractClassifier {
 			if(useHyperParameterOption.getValue() == 1){
 				tuneHyperParameters(data);
 			}
-			log.printInstancesToFile(data);
+			
 			if(vOption.getValue() == 1){
 				log.printBarrier();
 				log.printf(getPurposeString());
@@ -169,7 +170,9 @@ public class OLLASolver extends AbstractClassifier {
 	}
 
 	/**
-	 * Hyperparameter tuning for the first chunk of data
+	 * Hyperparameter tuning for the first chunk of data. 
+	 * No need to standardize the data here, because this only gets 
+	 * called after initialize, wich standardizes the data.
 	 * @param data
 	 */
 	public void tuneHyperParameters(Instances data){
@@ -207,9 +210,11 @@ public class OLLASolver extends AbstractClassifier {
 					}
 					// accumulated accuracy
 					accuracy += (double) 100.0*((correct)/ (double) test.numInstances());
+					log.print(correct + " ");
 				}
+				log.println();
 				// get mean fold accuracy
-				accuracy = accuracy/(double)folds;
+				accuracy = accuracy / (double) folds;
 				// find indexes of best accuracy
 				if(accuracy > acc){
 					acc = accuracy;
@@ -222,6 +227,13 @@ public class OLLASolver extends AbstractClassifier {
 				accuracy = 0.0;
 			}
 		}
+		
+		if(vOption.getValue() == 1){
+			log.printBarrier();
+			log.println("Best Tol: "+tol[ii]);
+			log.println("Best Gamma: "+gamma[jj]);
+		}
+		
 		// set winning parameters
 		params.setGamma(gamma[jj]);
 		params.setTol(tol[ii]);
@@ -318,6 +330,10 @@ public class OLLASolver extends AbstractClassifier {
 		// initialize votes and evidence
 		state.setVotes(new int[num_classes]);
 		state.setEvidence(new double[num_classes]);
+		// standardize data if set
+		if(standardizeOption.getValue() == 1){
+			proc.convertInstance(inst);
+		}
 
 		if(cache != null){
 			// calculate the kernel vector for all SVs
