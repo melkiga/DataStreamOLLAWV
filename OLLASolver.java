@@ -237,7 +237,6 @@ public class OLLASolver extends AbstractClassifier {
 				}
 				// get mean fold accuracy
 				accuracy = (double) 100*accuracy / (double) data.numInstances();
-				log.print(accuracy + " ");
 				// find indexes of best accuracy
 				if(accuracy > acc){
 					acc = accuracy;
@@ -249,7 +248,6 @@ public class OLLASolver extends AbstractClassifier {
 				// reset accuracy for next parameters
 				accuracy = 0.0;
 			}
-			log.println();
 		}
 
 		if(vOption.getValue() == 1){
