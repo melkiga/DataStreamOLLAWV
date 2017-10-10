@@ -86,9 +86,6 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Data Header Variables
 	 */
-	protected int num_data;
-	protected int dim;
-	protected int num_classes;
 	protected int[] classSizes;
 	protected PairwiseTrainingState state;
 	protected Standardize proc;
@@ -117,10 +114,6 @@ public class OLLASolver extends AbstractClassifier {
 		params.setGamma(gOption.getValue());
 		params.setEpochs(eOption.getValue());
 		params.setTol(tOption.getValue());
-		// Get data header
-		this.num_data = context.numInstances();
-		this.dim = context.numAttributes()-1;
-		this.num_classes = context.numClasses();
 		// Set the state to be null
 		this.state = new PairwiseTrainingState();
 		// Set cache to be null
@@ -133,35 +126,33 @@ public class OLLASolver extends AbstractClassifier {
 	 * Initializes the solver + the pairwise models
 	 */
 	public void initialize(Instances data){
-		// set class index & data information
-		num_data = data.numInstances();
-		dim = data.numAttributes()-1;
-		data.setClassIndex(dim);
+		// set class index
+		data.setClassIndex(data.numAttributes()-1);
 
 		// get class sizes
-		classSizes = new int[num_classes];
-		for(int sample = 0; sample < num_data; sample++){
+		classSizes = new int[data.numClasses()];
+		for(int sample = 0; sample < data.numInstances(); sample++){
 			int label = (int) data.get(sample).classValue();
 			classSizes[label]++;
 		}
 
 		// initialize pairwise models & assign size of each based on the class sizes
 		state.models = new ArrayList<PairwiseTrainingResult>();
-		for(int i = 0; i < num_classes; i++){
-			for(int j = (i+1); j < num_classes; j++){
+		for(int i = 0; i < data.numClasses(); i++){
+			for(int j = (i+1); j < data.numClasses(); j++){
 				int size = classSizes[i] + classSizes[j];
 				state.models.add(new PairwiseTrainingResult(params, size, new Tuple<Integer,Integer>(i,j)));
 			}
 		}
 
 		// set the last label number as max label
-		state.setLabelNumber(num_classes);
+		state.setLabelNumber(data.numClasses());
 
 		// build the kernel evaluator
-		eval = new KernelEvaluator(data, num_data, params.getGamma());
+		eval = new KernelEvaluator(data, data.numInstances(), params.getGamma());
 
 		// build the cache
-		cache = new Cache(num_data,params,eval);
+		cache = new Cache(data.numInstances(),params,eval);
 	}
 
 	/**
@@ -278,7 +269,7 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	public void pairwiseTraining(){
 		// set up the environment for each pairwise model
-		int totalSize = num_data;
+		int totalSize = this.cache.problemSize;
 		for(int i = 0; i < state.models.size(); i++){
 			// reorder samples based on training pair
 			Tuple<Integer,Integer> trainPair = state.models.get(i).trainingLabels;
@@ -360,10 +351,10 @@ public class OLLASolver extends AbstractClassifier {
 	 * @return
 	 */
 	public double[] classify(Instance inst){
-		double[] result = new double[num_classes];
+		double[] result = new double[inst.numClasses()];
 		// initialize votes and evidence
-		state.setVotes(new int[num_classes]);
-		state.setEvidence(new double[num_classes]);
+		state.setVotes(new int[inst.numClasses()]);
+		state.setEvidence(new double[inst.numClasses()]);
 
 		if(cache != null){
 			// calculate the kernel vector for all SVs
@@ -406,10 +397,10 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	@Override
 	public double[] getVotesForInstance(Instance inst) {
-		double[] result = new double[num_classes];
+		double[] result = new double[inst.numClasses()];
 		// initialize votes and evidence
-		state.setVotes(new int[num_classes]);
-		state.setEvidence(new double[num_classes]);
+		state.setVotes(new int[inst.numClasses()]);
+		state.setEvidence(new double[inst.numClasses()]);
 		// standardize data if set
 		if(standardizeOption.getValue() == 1){
 			inst = proc.convertInstance(inst);
@@ -522,8 +513,6 @@ public class OLLASolver extends AbstractClassifier {
 		buff.append("Margin Tol: "+params.getTol()+"\n");
 		buff.append("Number of Epochs: "+params.getEpochs()+"\n");
 		buff.append("Using Change Detection: "+changeOption.getValue()+"\n");
-		buff.append("Dimensionality: "+this.dim+"\n");
-		buff.append("Number of classes: "+this.num_classes+"\n");
 		buff.append("Seed: "+this.randomSeed+"\n");
 		return buff.toString();
 	}
