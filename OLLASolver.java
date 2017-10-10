@@ -126,6 +126,7 @@ public class OLLASolver extends AbstractClassifier {
 		// Set cache to be null
 		cache = null;
 		eval = null;
+		proc = null;
 	}
 
 	/**
@@ -149,7 +150,7 @@ public class OLLASolver extends AbstractClassifier {
 		for(int i = 0; i < num_classes; i++){
 			for(int j = (i+1); j < num_classes; j++){
 				int size = classSizes[i] + classSizes[j];
-				state.models.add(new PairwiseTrainingResult(params,size, new Tuple<Integer,Integer>(i,j)));
+				state.models.add(new PairwiseTrainingResult(params, size, new Tuple<Integer,Integer>(i,j)));
 			}
 		}
 
@@ -411,7 +412,7 @@ public class OLLASolver extends AbstractClassifier {
 		state.setEvidence(new double[num_classes]);
 		// standardize data if set
 		if(standardizeOption.getValue() == 1){
-			proc.convertInstance(inst);
+			inst = proc.convertInstance(inst);
 		}
 
 		if(cache != null){
