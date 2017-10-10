@@ -23,7 +23,7 @@ public class PairwiseTrainingState {
 	/**
 	 * Testing holders for models
 	 */
-	protected int[] votes;
+	protected double[] votes;
 	protected double[] evidence;
 	
 	public PairwiseTrainingState(){
@@ -53,11 +53,11 @@ public class PairwiseTrainingState {
 		this.labelNumber = labelNumber;
 	}
 
-	public int[] getVotes() {
+	public double[] getVotes() {
 		return votes;
 	}
 
-	public void setVotes(int[] votes) {
+	public void setVotes(double[] votes) {
 		this.votes = votes;
 	}
 

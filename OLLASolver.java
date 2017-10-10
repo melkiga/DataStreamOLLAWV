@@ -353,7 +353,7 @@ public class OLLASolver extends AbstractClassifier {
 	public double[] classify(Instance inst){
 		double[] result = new double[inst.numClasses()];
 		// initialize votes and evidence
-		state.setVotes(new int[inst.numClasses()]);
+		state.setVotes(new double[inst.numClasses()]);
 		state.setEvidence(new double[inst.numClasses()]);
 
 		if(cache != null){
@@ -372,7 +372,7 @@ public class OLLASolver extends AbstractClassifier {
 			}
 			// get the winning class (includes tied classes)
 			int maxLabelId = 0;
-			int maxVotes = 0;
+			double maxVotes = 0;
 			double maxEvidence = 0;
 			for(int i = 0; i < state.getLabelNumber(); i++){
 				if(state.votes[i] > maxVotes
@@ -399,7 +399,7 @@ public class OLLASolver extends AbstractClassifier {
 	public double[] getVotesForInstance(Instance inst) {
 		double[] result = new double[inst.numClasses()];
 		// initialize votes and evidence
-		state.setVotes(new int[inst.numClasses()]);
+		state.setVotes(new double[inst.numClasses()]);
 		state.setEvidence(new double[inst.numClasses()]);
 		// standardize data if set
 		if(standardizeOption.getValue() == 1){
@@ -413,27 +413,18 @@ public class OLLASolver extends AbstractClassifier {
 			eval.evalKernel(inst, svnumber, G);
 			// for each model, calculate output and fill votes and evidence
 			for(Iterator<PairwiseTrainingResult> it = state.models.iterator(); it.hasNext();){
-				PairwiseTrainingResult model = it.next();
-				double dec = getDecisionForModel(model,G);
-				int label = dec > 0 ? model.trainingLabels.second : model.trainingLabels.first;
-				state.votes[label]++;
-				state.evidence[model.trainingLabels.first] += dec;
-				state.evidence[model.trainingLabels.second] += dec;
+			  PairwiseTrainingResult model = it.next();
+			  double dec = getDecisionForModel(model,G);
+			  int label = dec > 0 ? model.trainingLabels.second : model.trainingLabels.first;
+			  state.votes[label]++;
+			  state.evidence[label] += Math.abs(dec);
 			}
-			
-			// get the winning class (includes tied classes)
-			int maxLabelId = 0;
-			int maxVotes = 0;
-			double maxEvidence = 0;
-			for(int i = 0; i < state.getLabelNumber(); i++){
-				if(state.votes[i] > maxVotes
-						|| (state.votes[i] == maxVotes && state.evidence[i] > maxEvidence)){
-					maxLabelId = i;
-					maxVotes = state.votes[i];
-					maxEvidence = state.evidence[i];
-				}
+
+			if(inst.numClasses() == 2){
+			  result = state.getVotes();
+			} else {
+			  result = state.getEvidence();
 			}
-			result[maxLabelId]++;
 		}
 		return result;
 	}
