@@ -9,6 +9,7 @@ package vcu.edu.datastreamlearning.ollawv;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Random;
 
 import com.github.javacliparser.FloatOption;
 import com.github.javacliparser.IntOption;
@@ -23,7 +24,11 @@ import moa.core.StringUtils;
 
 public class OLLASolver extends AbstractClassifier {
 	private static final long serialVersionUID = 7225375378266360793L;
-
+	/**
+	 * Variables for returning probabilities (LOGLOSS) or winning class (HINGE)
+	 */
+    protected static final int HINGE = 0;
+    protected static final int LOGLOSS = 1;
 	/**
 	 * SVM Penalty Parameter C, command line, default value = 1.0
 	 */
@@ -55,12 +60,29 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Option to standardize data, default = 1
 	 */
-	public IntOption standardizeOption = new IntOption("standardize",'s',"Standardize data, 0 mean 1 stdv",0);
+	public IntOption standardizeOption = new IntOption("standardize",'s',"Standardize data, 0 mean 1 stdv",1);
 	/**
 	 * To use hyper-parameter selection in first chunk
 	 */
 	public IntOption useHyperParameterOption = new IntOption("hyperparameter",'p',"Use hyper-parameter selection in first chunk.",1);
-
+	/**
+	 * Set seed for shuffling the data in hyper-parameter selection
+	 */
+	public IntOption seedOption = new IntOption("seed",'z',"Seed value for shuffling data.",1);
+	/**
+	 * Whether to randomize the data or not
+	 */
+	public IntOption randOption = new IntOption("rand",'r',"Option for randomizing the data.",1);
+	/**
+	 * Set the number of folds for CV during hyper-parameter selection
+	 */
+	public IntOption foldOption = new IntOption("fold",'f',"Option for setting CV folds for tuning hyper-parameters.",10);
+	/**
+	 * Set the number of folds for CV during hyper-parameter selection
+	 */
+	public IntOption lossOption = new IntOption("loss",'l',"Option for which loss function to use (hinge [0,1] or log [probabilities]).",0);
+	
+	
 	/**
 	 * Data Header Variables
 	 */
@@ -151,20 +173,30 @@ public class OLLASolver extends AbstractClassifier {
 			proc = new Standardize();
 			data = proc.convertInstances(data);
 		}
-		// use hyper-parameter selection on first chunk		
+
+		// Randomize & stratify the data
+		if(randOption.getValue() == 1){
+			Random rand = new Random(seedOption.getValue());
+			data = new Instances(data);
+			data.randomize(rand);
+			data.stratify(foldOption.getValue());
+		}
+
+		// if this is the first chunk
 		if(cache == null) {
-			if(useHyperParameterOption.getValue() == 1){
-				tuneHyperParameters(data);
-			}
-			
+			// print purpose and context if debug is enabled
 			if(vOption.getValue() == 1){
 				log.printBarrier();
 				log.printf(getPurposeString());
 				log.printf(getModelContextString());
 				log.printBarrier();
 			}
+			// use hyper-parameter selection on first chunk		
+			if(useHyperParameterOption.getValue() == 1){
+				tuneHyperParameters(data);
+			}
 		}
-		
+		// initialize the cache and evaluator, then train
 		initialize(data);
 		pairwiseTraining();
 	}
@@ -176,7 +208,7 @@ public class OLLASolver extends AbstractClassifier {
 	 * @param data
 	 */
 	public void tuneHyperParameters(Instances data){
-		int folds = 10;
+		int folds = foldOption.getValue();
 		double[] gamma = {0.001, 0.01, 0.1, 0.5, 1.0, 2.0, 4.0, 16.0};
 		double[] tol = {0.01, 0.1, 1.0};
 		// accuracy of fold k
@@ -202,19 +234,18 @@ public class OLLASolver extends AbstractClassifier {
 					int correct = 0;
 					for(int t = 0; t < test.numInstances(); t++){
 						Instance test_inst = test.get(t);
-						result = getVotesForInstance(test_inst);
+						result = classify(test_inst);
 						int true_output = (int) test_inst.classValue();
 						if(result[true_output] == 1.0){
 							correct++;
 						}
 					}
 					// accumulated accuracy
-					accuracy += (double) 100.0*((correct)/ (double) test.numInstances());
-					log.print(correct + " ");
+					accuracy += correct;
 				}
-				log.println();
 				// get mean fold accuracy
-				accuracy = accuracy / (double) folds;
+				accuracy = (double) 100*accuracy / (double) data.numInstances();
+				log.print(accuracy + " ");
 				// find indexes of best accuracy
 				if(accuracy > acc){
 					acc = accuracy;
@@ -226,14 +257,16 @@ public class OLLASolver extends AbstractClassifier {
 				// reset accuracy for next parameters
 				accuracy = 0.0;
 			}
+			log.println();
 		}
-		
+
 		if(vOption.getValue() == 1){
 			log.printBarrier();
+			log.println("Hyper-parameter tuning complete...");
 			log.println("Best Tol: "+tol[ii]);
 			log.println("Best Gamma: "+gamma[jj]);
 		}
-		
+
 		// set winning parameters
 		params.setGamma(gamma[jj]);
 		params.setTol(tol[ii]);
@@ -316,6 +349,52 @@ public class OLLASolver extends AbstractClassifier {
 		return train;
 	}
 
+	/**
+	 * Calculates the class membership for the given test instance. 
+	 * Result holds the negative class probability in space result[0], and positive in result[1].
+	 * Returns 1 in the winning class' position in the result array.
+	 * No need to standardize or randomize data because it has already been done in initialize.
+	 * Tuning the hyper-parameters calls this only.
+	 * @param data
+	 * @return
+	 */
+	public double[] classify(Instance inst){
+		double[] result = new double[num_classes];
+		// initialize votes and evidence
+		state.setVotes(new int[num_classes]);
+		state.setEvidence(new double[num_classes]);
+
+		if(cache != null){
+			// calculate the kernel vector for all SVs
+			int svnumber = state.getSvNumber();
+			double[] G = new double[svnumber];
+			eval.evalKernel(inst, svnumber, G);
+			// for each model, calculate output and fill votes and evidence
+			for(Iterator<PairwiseTrainingResult> it = state.models.iterator(); it.hasNext();){
+				PairwiseTrainingResult model = it.next();
+				double dec = getDecisionForModel(model,G);
+				int label = dec > 0 ? model.trainingLabels.second : model.trainingLabels.first;
+				state.votes[label]++;
+				state.evidence[model.trainingLabels.first] += dec;
+				state.evidence[model.trainingLabels.second] += dec;
+			}
+			// get the winning class (includes tied classes)
+			int maxLabelId = 0;
+			int maxVotes = 0;
+			double maxEvidence = 0;
+			for(int i = 0; i < state.getLabelNumber(); i++){
+				if(state.votes[i] > maxVotes
+						|| (state.votes[i] == maxVotes && state.evidence[i] > maxEvidence)){
+					maxLabelId = i;
+					maxVotes = state.votes[i];
+					maxEvidence = state.evidence[i];
+				}
+			}
+			result[maxLabelId]++;
+		}
+		return result;
+	}
+
 	/***
 	 * Calculates the class membership for the given test
 	 * instance (either 0 or 1). Result holds the negative class
@@ -349,6 +428,7 @@ public class OLLASolver extends AbstractClassifier {
 				state.evidence[model.trainingLabels.first] += dec;
 				state.evidence[model.trainingLabels.second] += dec;
 			}
+			
 			// get the winning class (includes tied classes)
 			int maxLabelId = 0;
 			int maxVotes = 0;
