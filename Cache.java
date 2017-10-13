@@ -98,7 +98,7 @@ public class Cache {
 			LB = (lambda*betta) / currentSize;
 			
 			// calculate the kernel vector
-			eval.evalKernel(viol.violator,currentSize,G);
+			eval.evalKernel(viol.violator,svnumber,currentSize,G);
 			
 			// calculate the output vector (output = output + G*lambda + LB)
 			updateOutput(lambda, G, LB);
@@ -157,7 +157,7 @@ public class Cache {
 	 * @param LB
 	 */
 	public void updateOutput(double lambda, double[] G, double LB){
-		for(int i = 0; i < currentSize; i++){
+		for(int i = svnumber; i < currentSize; i++){
 			output[i] = output[i] + G[i]*lambda + LB;
 		}
 	}
