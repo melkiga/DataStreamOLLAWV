@@ -73,8 +73,8 @@ public class Cache {
 	 */
 	protected void trainForCache(){
 		int maxIter = (int) Math.ceil(params.getEpochs()*currentSize);
-		double C = params.getC();
-		double margin = params.getTol()*C;
+		//double C = params.getC();
+		double margin = params.getTol();
 		double eta = 0.0;
 		double lambda = 0.0;
 		double LB = 0.0;
@@ -94,7 +94,7 @@ public class Cache {
 			label = getLabel(viol.violator); 
 			
 			// set update variables
-			lambda = eta*C*label;
+			lambda = eta*label;
 			LB = (lambda*betta) / currentSize;
 			
 			// calculate the kernel vector
@@ -113,7 +113,7 @@ public class Cache {
 			// perform SV update
 			viol.violator = performSVUpdate(viol.violator);
 			
-		} while(viol.yo < margin && iter < maxIter); 
+		} while(viol.yo < margin); 
 	}
 	
 	/**
