@@ -25,7 +25,7 @@ public class OLLAWVTester {
 		String[] localArgs = {"moa.tasks.EvaluateInterleavedChunksG -S ", 
 				"-s \"generators.RandomRBFGenerator\"",
 				"-l \"vcu.edu.datastreamlearning.ollawv.OLLASolver -s 1 -p 1 -v 1\"", 
-				"-i "+1000000, 
+				"-i "+100000, 
 				"-f "+1000, 
 				"-c "+1000,
 				"-d results/output.csv"};

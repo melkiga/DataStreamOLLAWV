@@ -32,7 +32,7 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * SVM Penalty Parameter C, command line, default value = 1.0
 	 */
-	public FloatOption cOption = new FloatOption("C", 'c', "SVM Penalty Parameter.", 1.0);
+	public FloatOption cOption = new FloatOption("C", 'c', "SVM Penalty Parameter.", 0.1);
 	/**
 	 * Gaussian Gamma Parameter, command line, default value = 0.5
 	 */
@@ -42,10 +42,6 @@ public class OLLASolver extends AbstractClassifier {
 	 */
 	public IntOption bOption = new IntOption("betta",'b',"Use bias or not.",1);
 	/**
-	 * Set the number of epochs, command line, default value = 0.5
-	 */
-	public FloatOption eOption = new FloatOption("epochs",'e',"Number of epochs.",0.5);
-	/**
 	 * Whether to use change-detection method, command line, default value = 0
 	 */
 	public IntOption changeOption = new IntOption("detection",'d',"Use change detection.",0);
@@ -53,10 +49,6 @@ public class OLLASolver extends AbstractClassifier {
 	 * Set whether to print the entire model, default value = 0
 	 */
 	public IntOption vOption = new IntOption("verbose",'v',"Print entire model.",0);
-	/**
-	 * Option for margin width, default value 0.1
-	 */
-	public FloatOption tOption = new FloatOption("tol",'t',"Tolerance for alpha pruning.",0.1);
 	/**
 	 * Option to standardize data, default = 1
 	 */
@@ -112,8 +104,6 @@ public class OLLASolver extends AbstractClassifier {
 		params = new SVMParameters();
 		params.setC(cOption.getValue());
 		params.setGamma(gOption.getValue());
-		params.setEpochs(eOption.getValue());
-		params.setTol(tOption.getValue());
 		// Set the state to be null
 		this.state = new PairwiseTrainingState();
 		// Set cache to be null
@@ -202,7 +192,7 @@ public class OLLASolver extends AbstractClassifier {
 	public void tuneHyperParameters(Instances data){
 		int folds = foldOption.getValue();
 		double[] gamma = {0.001, 0.01, 0.1, 0.5, 1.0, 2.0, 4.0, 16.0};
-		double[] tol = {0.01, 0.1, 1.0};
+		double[] tol = {0.0, 0.01, 0.1, 0.5};
 		// accuracy of fold k
 		double accuracy = 0.0;
 		// best accuracy
@@ -211,7 +201,7 @@ public class OLLASolver extends AbstractClassifier {
 		int ii = 0; int jj = 0;
 		// cross validation for parameter selection
 		for(int i = 0; i < tol.length; i++){
-			params.setTol(tol[i]);
+			params.setC(tol[i]);
 			for(int j = 0; j < gamma.length; j++){
 				params.setGamma(gamma[j]);
 				for(int k = 0; k < folds; k++){
@@ -255,11 +245,12 @@ public class OLLASolver extends AbstractClassifier {
 			log.println("Hyper-parameter tuning complete...");
 			log.println("Best Tol: "+tol[ii]);
 			log.println("Best Gamma: "+gamma[jj]);
+			log.println("Best Hyper-param tuning accuraty: "+acc);
 		}
 
 		// set winning parameters
 		params.setGamma(gamma[jj]);
-		params.setTol(tol[ii]);
+		params.setC(tol[ii]);
 	}
 
 	/**
@@ -508,8 +499,6 @@ public class OLLASolver extends AbstractClassifier {
 		buff.append("SVM Parameter C: "+params.getC()+"\n");
 		buff.append("RBF Parameter gamma: "+params.getGamma()+"\n");
 		buff.append("Using Bias: "+params.getBetta()+"\n");
-		buff.append("Margin Tol: "+params.getTol()+"\n");
-		buff.append("Number of Epochs: "+params.getEpochs()+"\n");
 		buff.append("Using Change Detection: "+changeOption.getValue()+"\n");
 		buff.append("Seed: "+this.randomSeed+"\n");
 		return buff.toString();

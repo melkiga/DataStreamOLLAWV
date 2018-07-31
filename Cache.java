@@ -72,9 +72,7 @@ public class Cache {
 	 * Training a binary OLLAWV model
 	 */
 	protected void trainForCache(){
-		int maxIter = (int) Math.ceil(params.getEpochs()*currentSize);
-		//double C = params.getC();
-		double margin = params.getTol();
+		double margin = params.getC();
 		double eta = 0.0;
 		double lambda = 0.0;
 		double LB = 0.0;
@@ -113,7 +111,7 @@ public class Cache {
 			// perform SV update
 			viol.violator = performSVUpdate(viol.violator);
 			
-		} while(viol.yo < margin); 
+		} while(viol.yo < margin && iter < currentSize-1); 
 	}
 	
 	/**
