@@ -186,7 +186,7 @@ public class OLLASolver extends AbstractClassifier {
 	/**
 	 * Hyperparameter tuning for the first chunk of data. 
 	 * No need to standardize the data here, because this only gets 
-	 * called after initialize, wich standardizes the data.
+	 * called after initialize, which standardizes the data.
 	 * @param data
 	 */
 	public void tuneHyperParameters(Instances data){
